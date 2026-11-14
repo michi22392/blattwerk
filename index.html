@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Blattwerk</title>
+<meta name="description" content="Blattwerk – deine Pflanzenpflege-App">
+<!-- Theme-Farbe grün (Statusleiste / Browserleiste) -->
+<meta name="theme-color" content="#2f7d3c">
+<!-- iOS: als App vom Startbildschirm starten -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Blattwerk">
+
+<script>
+/* =====================================================================
+   APP-ICON (SVG) + WEB-APP-MANIFEST
+   Das Icon ist ein panaschiertes Monstera-Blatt. Es wird als Favicon,
+   im Manifest, als apple-touch-icon und im Kopfbereich verwendet.
+   iOS und Android akzeptieren für Startbildschirm-Icons kein SVG – deshalb
+   wird das SVG beim Start zusätzlich in PNG-Bilder umgewandelt.
+   ===================================================================== */
+(function () {
+  const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<mask id="m" maskUnits="userSpaceOnUse" x="-256" y="-256" width="1024" height="1024">
+<path fill="#fff" d="M256 70C340 75 430 150 432 255C434 345 370 410 300 405C280 404 264 392 256 372C248 392 232 404 212 405C142 410 78 345 80 255C82 150 172 75 256 70Z"/>
+<g fill="#000">
+<path d="M296 165Q350 128 404 100L410 118Q352 145 296 165Z"/>
+<path d="M304 228Q375 195 448 168L452 188Q378 213 304 228Z"/>
+<path d="M304 292Q380 270 456 252L456 272Q380 286 304 292Z"/>
+<path d="M294 348Q360 340 440 330L436 350Q362 356 294 348Z"/>
+<path d="M216 165Q162 128 108 100L102 118Q160 145 216 165Z"/>
+<path d="M208 228Q137 195 64 168L60 188Q134 213 208 228Z"/>
+<path d="M208 292Q132 270 56 252L56 272Q132 286 208 292Z"/>
+<path d="M218 348Q152 340 72 330L76 350Q150 356 218 348Z"/>
+<ellipse cx="282" cy="198" rx="6" ry="11" transform="rotate(-35 282 198)"/>
+<ellipse cx="288" cy="262" rx="6" ry="12" transform="rotate(-25 288 262)"/>
+<ellipse cx="280" cy="322" rx="5" ry="10" transform="rotate(-12 280 322)"/>
+<ellipse cx="230" cy="198" rx="6" ry="11" transform="rotate(35 230 198)"/>
+<ellipse cx="224" cy="262" rx="6" ry="12" transform="rotate(25 224 262)"/>
+<ellipse cx="232" cy="322" rx="5" ry="10" transform="rotate(12 232 322)"/>
+</g>
+</mask>
+</defs>
+<rect width="512" height="512" fill="#D3EAC8"/>
+<g transform="translate(256 252) rotate(16) scale(.8) translate(-256 -275)">
+<path d="M256 370C259 410 263 445 272 492" fill="none" stroke="#3C8C49" stroke-width="13" stroke-linecap="round"/>
+<g mask="url(#m)">
+<rect x="40" y="40" width="440" height="400" fill="#2E8540"/>
+<path fill="#F4EFD9" d="M256 268C228 286 196 276 168 296C140 316 108 306 70 318L60 430L256 430Z"/>
+<path fill="#F4EFD9" d="M258 96C292 112 318 140 330 176C312 168 290 150 260 142Z"/>
+<g fill="#F4EFD9">
+<circle cx="330" cy="122" r="5"/><circle cx="362" cy="168" r="4"/><circle cx="398" cy="214" r="6"/>
+<circle cx="342" cy="240" r="3.5"/><circle cx="384" cy="302" r="5"/><circle cx="412" cy="276" r="3"/>
+<circle cx="334" cy="330" r="6"/><circle cx="306" cy="384" r="4"/><circle cx="362" cy="372" r="3.5"/>
+<circle cx="218" cy="138" r="5"/><circle cx="178" cy="182" r="4"/><circle cx="148" cy="232" r="6"/>
+<circle cx="198" cy="244" r="3"/><circle cx="118" cy="258" r="4"/><circle cx="190" cy="118" r="3.5"/>
+<circle cx="306" cy="200" r="4"/><circle cx="214" cy="204" r="3"/><circle cx="398" cy="250" r="3.5"/>
+<circle cx="352" cy="282" r="7"/><circle cx="160" cy="150" r="3"/>
+</g>
+<g fill="#2E8540">
+<circle cx="150" cy="360" r="5"/><circle cx="200" cy="332" r="4"/><circle cx="112" cy="340" r="3.5"/><circle cx="228" cy="392" r="3"/>
+</g>
+<path d="M256 372Q250 232 258 92" fill="none" stroke="#86C285" stroke-width="7" stroke-linecap="round"/>
+</g>
+</g>
+</svg>`;
+
+  const svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ICON_SVG);
+  window.BW_ICON = svgUrl;
+
+  // Hilfsfunktion: <link> in den <head> einfügen
+  function addLink(rel, href, type) {
+    const l = document.createElement('link');
+    l.rel = rel;
+    l.href = href;
+    if (type) l.type = type;
+    document.head.appendChild(l);
+  }
+
+  // Favicon (SVG)
+  addLink('icon', svgUrl, 'image/svg+xml');
+
+  // SVG per Canvas in PNG umwandeln (für iOS-Startbildschirm und Android)
+  function toPng(size) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas');
+          c.width = c.height = size;
+          c.getContext('2d').drawImage(img, 0, 0, size, size);
+          resolve(c.toDataURL('image/png'));
+        } catch (e) { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = svgUrl;
+    });
+  }
+
+  Promise.all([toPng(180), toPng(192), toPng(512)]).then(([p180, p192, p512]) => {
+    if (p180) addLink('apple-touch-icon', p180);
+
+    // Web-App-Manifest als Data-URL (Adressen müssen absolut sein)
+    const startUrl = location.href.split('#')[0].split('?')[0];
+    const scope = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const icons = [];
+    if (p192) icons.push({ src: p192, sizes: '192x192', type: 'image/png', purpose: 'any' });
+    if (p512) {
+      icons.push({ src: p512, sizes: '512x512', type: 'image/png', purpose: 'any' });
+      icons.push({ src: p512, sizes: '512x512', type: 'image/png', purpose: 'maskable' });
+    }
+    icons.push({ src: svgUrl, sizes: 'any', type: 'image/svg+xml' });
+
+    const manifest = {
+      name: 'Blattwerk – Pflanzenpflege',
+      short_name: 'Blattwerk',
+      description: 'Gießplan, Wunschliste und Pflanzen-Chat',
+      lang: 'de',
+      start_url: startUrl,
+      scope: scope,
+      display: 'standalone',
+      orientation: 'portrait',
+      background_color: '#f5f0e3',
+      theme_color: '#2f7d3c',
+      icons: icons
+    };
+    addLink('manifest', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest)));
+  });
+
+  // Icon in alle <img class="icon-img"> einsetzen, sobald die Seite geladen ist
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.icon-img').forEach(img => { img.src = svgUrl; });
+  });
+})();
+</script>
+
+<style>
+/* =====================================================================
+   FARBEN & GRUNDLAGEN (heller Modus)
+   ===================================================================== */
+:root {
+  --bg: #f5f0e3;            /* Creme-Hintergrund */
+  --surface: #fffdf7;       /* Karten */
+  --surface-2: #ece6d3;     /* leicht dunklere Flächen */
+  --line: #e2dbc6;
+  --text: #1f2b20;
+  --text-2: #5f6e5d;
+  --green: #2f7d3c;
+  --green-strong: #256832;
+  --green-soft: #dfeed9;
+  --on-green: #ffffff;
+  --red: #c2412f;
+  --red-soft: #fbe2dc;
+  --on-red: #ffffff;
+  --orange: #b9620c;
+  --orange-soft: #fde9cf;
+  --ok: #2f7d3c;
+  --ok-soft: #dfeed9;
+  --amber: #8a5a12;
+  --amber-soft: #f6ead0;
+  --shadow: 0 6px 20px rgba(52, 70, 40, .08), 0 1px 3px rgba(52, 70, 40, .08);
+  --radius: 20px;
+  --radius-sm: 14px;
+  --tabbar-h: 64px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light dark;
+}
+
+/* Dunkler Modus – automatisch nach Systemeinstellung */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111814;
+    --surface: #1a241d;
+    --surface-2: #243128;
+    --line: #2d3b31;
+    --text: #e7eee4;
+    --text-2: #9db09b;
+    --green: #78c483;
+    --green-strong: #8fd399;
+    --green-soft: #21382a;
+    --on-green: #0f2414;
+    --red: #ff8f7f;
+    --red-soft: #3d2320;
+    --on-red: #2a0f0b;
+    --orange: #f5aa5c;
+    --orange-soft: #3b2b18;
+    --ok: #78c483;
+    --ok-soft: #21382a;
+    --amber: #e9c27a;
+    --amber-soft: #352c1b;
+    --shadow: 0 6px 20px rgba(0, 0, 0, .35), 0 1px 3px rgba(0, 0, 0, .3);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+a { color: var(--green); }
+img { display: block; max-width: 100%; }
+h1, h2, h3 { line-height: 1.25; }
+.muted { color: var(--text-2); }
+
+/* App-Rahmen: am Handy volle Breite, am PC mittig */
+#app {
+  max-width: 640px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 700px) {
+  body { background: var(--surface-2); }
+  #app { background: var(--bg); box-shadow: 0 0 40px rgba(0, 0, 0, .08); }
+}
+
+/* =====================================================================
+   BILDSCHIRME (Laden, Login, Profil, Begrüßung, Haupt-App)
+   ===================================================================== */
+.screen { display: none; height: 100%; }
+.screen.active { display: flex; }
+.screen.center {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: calc(32px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom));
+}
+.big-icon { width: 112px; height: 112px; border-radius: 28px; box-shadow: var(--shadow); }
+.brand { font-size: 2.3rem; letter-spacing: -.02em; color: var(--green); }
+.tagline { color: var(--text-2); margin-bottom: 18px; }
+.screen.center .stack { max-width: 340px; }
+.screen-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* Begrüßung mit sanfter Einblendung */
+.greet { display: flex; flex-direction: column; align-items: center; gap: 18px; animation: greetIn 1s ease both; }
+.greet-icon { width: 96px; height: 96px; border-radius: 26px; box-shadow: var(--shadow); }
+.greet h1 { font-size: 2rem; color: var(--green); }
+@keyframes greetIn {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+.main.active { animation: fadeIn .35s ease both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* =====================================================================
+   BUTTONS
+   ===================================================================== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px; border-radius: 999px;
+  font-weight: 600; font-size: 1rem; text-decoration: none; user-select: none;
+  transition: transform .1s, background .2s, opacity .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .5; cursor: default; transform: none; }
+.btn-primary { background: var(--green); color: var(--on-green); }
+.btn-soft { background: var(--green-soft); color: var(--green-strong); }
+.btn-plain { background: var(--surface-2); color: var(--text); }
+.btn-danger { background: var(--red); color: var(--on-red); }
+.btn-danger-soft { background: var(--red-soft); color: var(--red); }
+.btn-block { width: 100%; }
+.btn-sm { min-height: 40px; padding: 0 14px; font-size: .92rem; }
+.btn-google {
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  box-shadow: var(--shadow); min-height: 56px; padding: 0 26px; font-size: 1.05rem;
+}
+.btn-google svg { width: 22px; height: 22px; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text); flex-shrink: 0;
+}
+.icon-btn:active { background: var(--surface-2); }
+.icon-btn svg { width: 24px; height: 24px; }
+.icon-btn.sm { width: 40px; height: 40px; font-size: 1.05rem; }
+.icon-btn:disabled { opacity: .3; }
+
+/* =====================================================================
+   HAUPT-APP: Kopf, Reiter-Inhalte, Tab-Leiste, +-Button
+   ===================================================================== */
+.main { flex-direction: column; position: relative; }
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: calc(10px + env(safe-area-inset-top)) 10px 8px 18px;
+}
+.brand-row { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.25rem; color: var(--green); }
+.header-icon { width: 34px; height: 34px; border-radius: 10px; }
+.panels { flex: 1; position: relative; overflow: hidden; }
+.panel {
+  position: absolute; inset: 0; overflow-y: auto; display: none;
+  padding: 4px 16px 110px; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+}
+.panel.active { display: block; }
+#panel-chat.active { display: flex; flex-direction: column; padding: 0; }
+
+.tabbar {
+  display: flex; background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -4px 16px rgba(0, 0, 0, .04);
+}
+.tab {
+  flex: 1; height: var(--tabbar-h);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  color: var(--text-2); font-size: .75rem; font-weight: 600;
+}
+.tab svg { width: 24px; height: 24px; transition: transform .2s; }
+.tab.active { color: var(--green); }
+.tab.active svg { transform: scale(1.1); }
+
+.fab {
+  position: absolute; right: 18px; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 18px);
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--green); color: var(--on-green);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 20px rgba(47, 125, 60, .35); z-index: 5; transition: transform .15s;
+}
+.fab svg { width: 28px; height: 28px; }
+.fab:active { transform: scale(.92); }
+
+/* Lade- und Leer-Zustände */
+.loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 48px 16px; color: var(--text-2); }
+.loading.small { padding: 20px; }
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3.5px solid var(--green-soft); border-top-color: var(--green);
+  animation: spin .9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding: 56px 24px; color: var(--text-2); }
+.empty-emoji { font-size: 3.2rem; line-height: 1; }
+.empty p { font-size: 1.05rem; max-width: 290px; }
+
+/* =====================================================================
+   REITER 1: PFLANZEN
+   ===================================================================== */
+.summary {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--green-soft); color: var(--green-strong);
+  border-radius: var(--radius); padding: 14px 16px; font-weight: 700; margin-top: 4px;
+}
+.summary.attention { background: var(--orange-soft); color: var(--orange); }
+.toolbar { display: flex; justify-content: flex-end; margin-top: 10px; }
+.room-title { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 700; margin: 18px 4px 10px; }
+.room-count { font-size: .78rem; font-weight: 700; background: var(--surface-2); color: var(--text-2); border-radius: 999px; padding: 1px 9px; }
+.card-list { display: flex; flex-direction: column; gap: 12px; }
+
+.plant-card {
+  display: grid; grid-template-columns: 72px 1fr; gap: 10px 14px; align-items: center;
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px; cursor: pointer;
+}
+.thumb {
+  width: 72px; height: 72px; border-radius: 16px; overflow: hidden; flex-shrink: 0;
+  background: var(--green-soft); display: flex; align-items: center; justify-content: center; font-size: 2rem;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.plant-info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.plant-name { font-size: 1.08rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plant-species { font-size: .86rem; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plant-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.plant-actions .water-btn { margin-left: auto; }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 999px; font-size: .82rem; font-weight: 700; }
+.badge.late { background: var(--red-soft); color: var(--red); }
+.badge.today { background: var(--orange-soft); color: var(--orange); }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.fert-chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 999px; font-size: .82rem; font-weight: 700; background: var(--amber-soft); color: var(--amber); }
+.water-btn {
+  min-height: 42px; padding: 0 16px; border-radius: 999px;
+  background: var(--green); color: var(--on-green); font-weight: 700; font-size: .92rem;
+  transition: transform .1s;
+}
+.water-btn:active { transform: scale(.95); }
+.water-btn:disabled { background: var(--surface-2); color: var(--text-2); transform: none; cursor: default; }
+
+/* =====================================================================
+   DETAILANSICHT
+   ===================================================================== */
+.detail {
+  position: fixed; inset: 0; max-width: 640px; margin: 0 auto; z-index: 20;
+  background: var(--bg); display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .28s ease;
+}
+.detail.open { transform: none; }
+.detail-head { display: flex; align-items: center; gap: 4px; padding: calc(8px + env(safe-area-inset-top)) 8px 8px; }
+.detail-title { flex: 1; text-align: center; font-size: 1.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.detail-scroll {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: 0 16px calc(32px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 14px;
+}
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.card h3 { font-size: 1.02rem; margin-bottom: 12px; }
+.detail-info h1 { font-size: 1.5rem; }
+.detail-info .owned { color: var(--text-2); margin: 6px 0 12px; }
+.detail-status { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.fert-info { font-size: .88rem; color: var(--text-2); margin-bottom: 14px; }
+.history { list-style: none; display: flex; flex-direction: column; }
+.history li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.history li:last-child { border-bottom: 0; }
+.history .h-date { margin-left: auto; color: var(--text-2); font-size: .88rem; }
+
+/* =====================================================================
+   FORMULARE
+   ===================================================================== */
+.stack { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.field { display: flex; flex-direction: column; gap: 6px; text-align: left; min-width: 0; border: 0; }
+.field > span, .field > legend { font-size: .86rem; font-weight: 700; color: var(--text-2); margin-bottom: 0; }
+.field legend { margin-bottom: 6px; }
+.field em { font-style: normal; font-weight: 400; }
+input:not([type=radio]):not([type=file]), select, textarea {
+  width: 100%; min-height: 50px; padding: 12px 14px;
+  border-radius: var(--radius-sm); border: 1.5px solid var(--line);
+  background: var(--surface); font-size: 16px; outline: none;
+  transition: border-color .2s; -webkit-appearance: none; appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--green); }
+textarea { resize: vertical; min-height: 90px; line-height: 1.4; }
+select {
+  padding-right: 40px; background-repeat: no-repeat; background-position: right 14px center; background-size: 18px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d8b7a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+.hint { font-size: .84rem; color: var(--text-2); }
+.form-error, .error-text { color: var(--red); font-size: .92rem; font-weight: 600; }
+.sep { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+
+/* Foto-Auswahl */
+.photo-field { display: flex; flex-direction: column; gap: 10px; }
+.photo-preview {
+  width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden;
+  background: var(--green-soft); display: flex; align-items: center; justify-content: center;
+}
+.sheet .photo-preview { aspect-ratio: 16 / 9; }
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.photo-empty { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 2.4rem; }
+.photo-empty span { font-size: .9rem; font-weight: 600; color: var(--text-2); }
+.photo-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.photo-buttons .btn { flex: 1; position: relative; overflow: hidden; }
+.file-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+/* Segment-Auswahl (Priorität) */
+.segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 999px; }
+.segmented label { position: relative; }
+.segmented input { position: absolute; inset: 0; opacity: 0; }
+.segmented span { display: flex; align-items: center; justify-content: center; min-height: 42px; border-radius: 999px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.segmented input:checked + span { background: var(--surface); color: var(--green); box-shadow: var(--shadow); }
+.segmented input:focus-visible + span { outline: 2px solid var(--green); }
+
+/* =====================================================================
+   BOTTOM-SHEET (Formulare fahren von unten hoch)
+   ===================================================================== */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 30; background: rgba(20, 30, 20, .45);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; transition: opacity .25s;
+}
+.sheet-backdrop.open { opacity: 1; }
+.sheet {
+  width: 100%; max-width: 640px; max-height: 92vh; max-height: 92dvh;
+  background: var(--bg); border-radius: 24px 24px 0 0; display: flex; flex-direction: column;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, .15);
+}
+.sheet-backdrop.open .sheet { transform: none; }
+.sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 8px auto 0; flex-shrink: 0; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 10px 4px 20px; flex-shrink: 0; }
+.sheet-head h2 { font-size: 1.2rem; }
+.sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 6px 20px calc(24px + env(safe-area-inset-bottom)); }
+
+/* Räume verwalten */
+.rooms-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.room-row { display: flex; align-items: center; gap: 2px; background: var(--surface); border-radius: var(--radius-sm); padding: 4px 4px 4px 2px; box-shadow: var(--shadow); }
+.room-row input.room-name { flex: 1; border-color: transparent; background: transparent; min-height: 44px; }
+.add-room { display: flex; gap: 8px; }
+.add-room input { flex: 1; }
+
+/* =====================================================================
+   DIALOG (Bestätigungen statt Browser-alert)
+   ===================================================================== */
+.dialog-backdrop {
+  position: fixed; inset: 0; z-index: 40; background: rgba(20, 30, 20, .5);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  opacity: 0; transition: opacity .2s;
+}
+.dialog-backdrop.open { opacity: 1; }
+.dialog {
+  background: var(--surface); border-radius: 24px; padding: 22px; width: 100%; max-width: 360px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25); transform: scale(.94); transition: transform .2s;
+}
+.dialog-backdrop.open .dialog { transform: none; }
+.dialog h3 { font-size: 1.15rem; margin-bottom: 8px; }
+.dialog p { color: var(--text-2); margin-bottom: 18px; }
+.dialog-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.dialog-buttons .btn { flex: 1; }
+
+/* Kurze Meldung unten */
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 92px);
+  transform: translate(-50%, 20px); background: var(--text); color: var(--bg);
+  padding: 12px 18px; border-radius: 999px; font-weight: 600; font-size: .92rem;
+  max-width: calc(100% - 32px); width: max-content; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 50;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* =====================================================================
+   REITER 2: PFLANZEN-CHAT
+   ===================================================================== */
+.chat-top { display: flex; gap: 8px; align-items: center; padding: 6px 16px 4px; }
+.chat-top select { flex: 1; min-height: 44px; padding-top: 8px; padding-bottom: 8px; }
+.chat-disclaimer { font-size: .75rem; color: var(--text-2); text-align: center; padding: 2px 16px 4px; }
+.chat-messages {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  padding: 8px 16px 12px; display: flex; flex-direction: column; gap: 10px;
+}
+.msg { max-width: 86%; padding: 10px 14px; border-radius: 18px; overflow-wrap: anywhere; }
+.msg-user { align-self: flex-end; background: var(--green); color: var(--on-green); border-bottom-right-radius: 6px; }
+.msg-ai { align-self: flex-start; background: var(--surface); box-shadow: var(--shadow); border-bottom-left-radius: 6px; }
+.msg-ai p + p, .msg-ai p + ul, .msg-ai p + ol, .msg-ai ul + p, .msg-ai ol + p { margin-top: 6px; }
+.msg-ai ul, .msg-ai ol { padding-left: 20px; margin-top: 4px; }
+.msg-ai li + li { margin-top: 3px; }
+.msg-ai code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 6px; }
+.msg-error { align-self: center; background: var(--red-soft); color: var(--red); font-size: .9rem; text-align: center; }
+.typing { display: flex; gap: 5px; padding: 15px 16px; }
+.typing span { width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); animation: blink 1.2s infinite both; }
+.typing span:nth-child(2) { animation-delay: .2s; }
+.typing span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.chat-form { display: flex; gap: 8px; align-items: flex-end; padding: 8px 12px 10px; border-top: 1px solid var(--line); background: var(--bg); }
+.chat-form textarea { flex: 1; min-height: 46px; max-height: 130px; resize: none; border-radius: 23px; padding: 11px 16px; }
+.send-btn { width: 46px; height: 46px; border-radius: 50%; background: var(--green); color: var(--on-green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.send-btn svg { width: 22px; height: 22px; }
+.send-btn:disabled { opacity: .5; }
+.chat-empty { margin: auto 0; text-align: center; color: var(--text-2); padding: 20px 8px; }
+.chat-empty .empty-emoji { margin-bottom: 8px; }
+.chat-empty ul { display: inline-block; text-align: left; margin-top: 8px; padding-left: 18px; font-size: .94rem; }
+.key-card { margin: 12px 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+.key-card ol { padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.key-card .empty-emoji { text-align: center; }
+
+/* =====================================================================
+   REITER 3: WUNSCHLISTE
+   ===================================================================== */
+.list-hint { font-size: .85rem; color: var(--text-2); margin: 6px 4px 10px; }
+.wish-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 12px; cursor: pointer;
+}
+.wish-card .thumb { width: 60px; height: 60px; border-radius: 14px; font-size: 1.6rem; }
+.wish-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.wish-name { font-weight: 700; font-size: 1.04rem; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wish-note { font-size: .86rem; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.prio { font-size: .75rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+.prio-3 { background: var(--red-soft); color: var(--red); }
+.prio-2 { background: var(--orange-soft); color: var(--orange); }
+.prio-1 { background: var(--surface-2); color: var(--text-2); }
+</style>
+</head>
+<body>
+<noscript>Blattwerk braucht JavaScript.</noscript>
+
+<div id="app">
+  <!-- ===== Ladebildschirm ===== -->
+  <section id="screen-loading" class="screen center active">
+    <img class="big-icon icon-img" alt="">
+    <div class="spinner"></div>
+    <p id="loadingText" class="muted">Blattwerk wird geladen …</p>
+    <div id="loadingActions" class="screen-actions" hidden>
+      <button class="btn btn-primary" id="btnRetry">Erneut versuchen</button>
+      <button class="btn btn-plain" id="btnLoadingLogout">Abmelden</button>
+    </div>
+  </section>
+
+  <!-- ===== Anmeldung ===== -->
+  <section id="screen-login" class="screen center">
+    <img class="big-icon icon-img" alt="Blattwerk-Logo">
+    <h1 class="brand">Blattwerk</h1>
+    <p class="tagline">Deine Pflanzen, gut versorgt.</p>
+    <button id="btnLogin" class="btn btn-google">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+      Mit Google anmelden
+    </button>
+    <p id="loginError" class="error-text" hidden></p>
+    <p id="configHint" class="card hint" hidden>⚙️ Firebase ist noch nicht eingerichtet. Trage deine Werte oben im Script von <b>index.html</b> ein (Block „FIREBASE-KONFIGURATION“).</p>
+  </section>
+
+  <!-- ===== Profil anlegen (erster Login) ===== -->
+  <section id="screen-profile" class="screen center">
+    <img class="big-icon icon-img" alt="">
+    <h1>Willkommen bei Blattwerk!</h1>
+    <p class="muted">Wie sollen wir dich nennen?</p>
+    <form id="profileForm" class="stack" novalidate>
+      <label class="field"><span>Anzeigename</span><input id="profileName" maxlength="40" autocomplete="given-name"></label>
+      <p id="profileError" class="error-text" hidden></p>
+      <button class="btn btn-primary btn-block" type="submit">Los geht's 🌱</button>
+    </form>
+  </section>
+
+  <!-- ===== Begrüßung ===== -->
+  <section id="screen-greet" class="screen center">
+    <div class="greet">
+      <img class="greet-icon icon-img" alt="">
+      <h1 id="greetText">Hallo 🌿</h1>
+    </div>
+  </section>
+
+  <!-- ===== Haupt-App ===== -->
+  <section id="screen-main" class="screen main">
+    <header class="app-header">
+      <div class="brand-row"><img class="header-icon icon-img" alt=""><span>Blattwerk</span></div>
+      <button id="btnSettings" class="icon-btn" aria-label="Einstellungen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </header>
+
+    <main class="panels">
+      <div id="panel-plants" class="panel active" role="tabpanel" aria-label="Pflanzen"></div>
+      <div id="panel-chat" class="panel" role="tabpanel" aria-label="Pflanzen-Chat"></div>
+      <div id="panel-wish" class="panel" role="tabpanel" aria-label="Wunschliste"></div>
+    </main>
+
+    <button id="fab" class="fab" aria-label="Pflanze hinzufügen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+
+    <nav class="tabbar" role="tablist">
+      <button class="tab active" data-tab="plants" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        <span>Pflanzen</span>
+      </button>
+      <button class="tab" data-tab="chat" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        <span>Pflanzen-Chat</span>
+      </button>
+      <button class="tab" data-tab="wish" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        <span>Wunschliste</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- ===== Detailansicht einer Pflanze (wird per JavaScript gefüllt) ===== -->
+  <section id="detail" class="detail" hidden aria-label="Pflanzendetails"></section>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+const firebaseConfig = {
+  apiKey: "AIzaSyAgSQsyExSEDxGIAJLZD0fC344rMPaOxmM",
+  authDomain: "blattwerk-ca37f.firebaseapp.com",
+  projectId: "blattwerk-ca37f",
+  storageBucket: "blattwerk-ca37f.firebasestorage.app",
+  messagingSenderId: "372849105108",
+  appId: "1:372849105108:web:faddd9bf8a281f9c4f8341"
+};
+const firebaseConfig = {
+  apiKey: "DEIN-API-KEY",
+  authDomain: "DEIN-PROJEKT.firebaseapp.com",
+  projectId: "DEIN-PROJEKT",
+  storageBucket: "DEIN-PROJEKT.firebasestorage.app",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000"
+};
+
+// KI-Modell für den Pflanzen-Chat (Google Gemini). Bei Bedarf hier ändern.
+const GEMINI_MODEL = "gemini-3.8-flash";
+// ═══════════════════════ Ende der Konfiguration ═══════════════════════
+
+
+// ---------- Firebase-Bibliotheken (modulares SDK über CDN) ----------
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, onAuthStateChanged, signOut
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+window.__bwStarted = true;
+
+// ============================================================
+//  GRUNDEINSTELLUNGEN
+// ============================================================
+const API_KEY_STORAGE = 'blattwerk.geminiKey';   // Name im localStorage
+const CONFIG_OK = !String(firebaseConfig.apiKey).includes('DEIN');
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
+// Systemanweisung für die KI
+const SYSTEM_PROMPT = `Du bist ein freundlicher, erfahrener Pflanzenexperte in der App „Blattwerk“.
+Du hilfst bei allen Fragen rund um Pflanzen: Pflege, Gießen, Licht, Standort, Erde, Düngen, Umtopfen, Vermehrung, Schädlinge und Krankheiten (z. B. gelbe oder braune Blätter).
+Antworte immer auf Deutsch, kurz und praktisch: wenige Sätze oder eine kurze Liste mit konkreten Tipps.
+Wenn dir wichtige Informationen fehlen, stelle eine kurze Rückfrage. Wenn du dir unsicher bist, sag das ehrlich.
+Bei Fragen, die nichts mit Pflanzen zu tun haben, lenke freundlich zum Thema Pflanzen zurück.`;
+
+// Firebase starten (nur wenn die Konfiguration eingetragen ist)
+let auth = null;
+let db = null;
+if (CONFIG_OK) {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+}
+
+// Zentraler Zustand der App
+const state = {
+  user: null,          // angemeldeter Firebase-Nutzer
+  profile: null,       // { name }
+  rooms: [],
+  plants: [],
+  wishes: [],
+  loaded: { rooms: false, plants: false, wishes: false },
+  unsubs: [],          // Firestore-Listener zum Abmelden
+  tab: 'plants',
+  detailId: null,      // ID der offenen Pflanze in der Detailansicht
+  roomsSheetRender: null,
+  chat: freshChat(),
+};
+
+function freshChat() {
+  return { id: null, messages: [], plantId: '', loaded: false, loading: false, sending: false, error: '' };
+}
+
+// ============================================================
+//  KLEINE HELFER
+// ============================================================
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+// Text sicher in HTML einsetzen (verhindert eingeschleusten Code)
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+));
+
+// Nur echte Bild-Data-URLs als Bildquelle zulassen
+const safeImg = src => (typeof src === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src)) ? src : '';
+
+// Firestore-Pfade: alles liegt unter users/{uid}/...
+const userDoc = () => doc(db, 'users', state.user.uid);
+const col = name => collection(db, 'users', state.user.uid, name);
+const docIn = (name, id) => doc(db, 'users', state.user.uid, name, id);
+
+const findPlant = id => state.plants.find(p => p.id === id);
+const findWish = id => state.wishes.find(w => w.id === id);
+const roomName = id => state.rooms.find(r => r.id === id)?.name || '';
+
+// Verständliche Fehlermeldung
+function errText(err) {
+  const c = String(err?.code || '');
+  if (c.includes('permission-denied')) return 'Keine Berechtigung – prüfe die Firestore-Rules.';
+  if (c.includes('unavailable')) return 'Keine Verbindung zum Server.';
+  return err?.message || 'Unbekannter Fehler';
+}
+
+function loadingHTML(text, small = false) {
+  return `<div class="loading${small ? ' small' : ''}"><div class="spinner"></div><span>${esc(text)}</span></div>`;
+}
+
+// Kurze Meldung unten am Bildschirm
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// Button während des Speicherns sperren
+function setBusy(btn, busy, text) {
+  if (!btn) return;
+  if (busy) { btn.dataset.label = btn.textContent; btn.textContent = text || 'Bitte warten …'; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+}
+
+function showFormError(form, msg) {
+  const p = $('.form-error', form);
+  if (!p) return toast(msg);
+  p.textContent = msg;
+  p.hidden = !msg;
+  if (msg) p.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+// ============================================================
+//  DATUM & GIESS-LOGIK  (Datumswerte als Text "JJJJ-MM-TT")
+// ============================================================
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayStr = () => ymd(new Date());
+function parseYmd(s) {
+  const [y, m, d] = String(s).split('-').map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+const isYmd = s => /^\d{4}-\d{2}-\d{2}$/.test(s);
+// Tage zwischen zwei Daten (gerundet, damit Sommerzeit nicht stört)
+const daysBetween = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+function addDays(s, n) { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); }
+function formatDate(s) { if (!isYmd(s)) return ''; const [y, m, d] = s.split('-'); return `${d}.${m}.${y}`; }
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+// Tage bis zum nächsten Gießen (negativ = überfällig)
+function daysUntilWater(p) {
+  const last = isYmd(p.lastWatered) ? p.lastWatered : todayStr();
+  const next = addDays(last, Number(p.intervalDays) || 7);
+  return daysBetween(todayStr(), next);
+}
+
+// Gieß-Status für den farbigen Badge
+function waterStatus(p) {
+  const d = daysUntilWater(p);
+  if (d < 0) return { cls: 'late', text: `Seit ${plural(-d, 'Tag', 'Tagen')} fällig` };
+  if (d === 0) return { cls: 'today', text: 'Heute gießen' };
+  return { cls: 'ok', text: `Gießen in ${plural(d, 'Tag', 'Tagen')}` };
+}
+
+// Ist das nächste Gießen ein Dünge-Termin?
+const fertDue = p => Number(p.fertilizeEvery) > 0 && (Number(p.waterCount) || 0) + 1 >= Number(p.fertilizeEvery);
+
+// "Seit 1 Jahr und 4 Monaten bei dir"
+function ownedText(since) {
+  if (!isYmd(since)) return '';
+  const today = todayStr();
+  if (since > today) return `Ab ${formatDate(since)} bei dir`;
+  const a = parseYmd(since), b = parseYmd(today);
+  let months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  if (b.getDate() < a.getDate()) months--;
+  if (months < 1) {
+    const d = daysBetween(since, today);
+    return d === 0 ? 'Seit heute bei dir' : `Seit ${plural(d, 'Tag', 'Tagen')} bei dir`;
+  }
+  const y = Math.floor(months / 12), m = months % 12;
+  const parts = [];
+  if (y) parts.push(plural(y, 'Jahr', 'Jahren'));
+  if (m) parts.push(plural(m, 'Monat', 'Monaten'));
+  return `Seit ${parts.join(' und ')} bei dir`;
+}
+
+// ============================================================
+//  DIALOG, BOTTOM-SHEET, ANSICHTEN
+// ============================================================
+
+// Eigener Dialog statt Browser-alert. Gibt den Wert des gedrückten
+// Buttons zurück – oder null, wenn daneben getippt wurde.
+function dialog({ title, text = '', buttons }) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'dialog-backdrop';
+    wrap.innerHTML = `
+      <div class="dialog" role="alertdialog" aria-modal="true" aria-label="${esc(title)}">
+        <h3>${esc(title)}</h3>
+        ${text ? `<p>${esc(text)}</p>` : ''}
+        <div class="dialog-buttons">
+          ${buttons.map((b, i) => `<button class="btn ${b.style || 'btn-plain'}" data-i="${i}">${esc(b.label)}</button>`).join('')}
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    wrap.offsetHeight;               // Reflow, damit die Animation startet
+    wrap.classList.add('open');
+    const done = value => {
+      wrap.classList.remove('open');
+      setTimeout(() => wrap.remove(), 200);
+      resolve(value);
+    };
+    wrap.addEventListener('click', e => {
+      if (e.target === wrap) return done(null);
+      const b = e.target.closest('[data-i]');
+      if (b) done(buttons[Number(b.dataset.i)].value);
+    });
+  });
+}
+
+const confirmDelete = (title, text) => dialog({
+  title, text,
+  buttons: [{ label: 'Abbrechen', value: false }, { label: 'Löschen', value: true, style: 'btn-danger' }]
+});
+
+// Bottom-Sheet öffnen (es ist immer nur eines offen)
+let currentSheet = null;
+function openSheet({ title, html, onClose }) {
+  closeSheet(true);
+  const wrap = document.createElement('div');
+  wrap.className = 'sheet-backdrop';
+  wrap.innerHTML = `
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <h2>${esc(title)}</h2>
+        <button class="icon-btn sheet-close" type="button" aria-label="Schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body">${html}</div>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.offsetHeight;
+  wrap.classList.add('open');
+  wrap.addEventListener('click', e => { if (e.target === wrap) closeSheet(); });
+  $('.sheet-close', wrap).addEventListener('click', () => closeSheet());
+  currentSheet = { el: wrap, onClose };
+  return wrap;
+}
+
+function closeSheet(immediate = false) {
+  if (!currentSheet) return;
+  const { el, onClose } = currentSheet;
+  currentSheet = null;
+  onClose?.();
+  if (immediate) el.remove();
+  else { el.classList.remove('open'); setTimeout(() => el.remove(), 300); }
+}
+
+function showScreen(name) {
+  $$('.screen').forEach(s => s.classList.toggle('active', s.id === 'screen-' + name));
+}
+
+// ============================================================
+//  FOTOS: im Browser verkleinern und als Base64 speichern
+// ============================================================
+const dataUrlBytes = url => Math.round((url.length - url.indexOf(',') - 1) * 3 / 4);
+
+async function resizeImage(file, maxSize = 600, quality = 0.7) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error('Das Bild konnte nicht gelesen werden.'));
+      i.src = url;
+    });
+    const scale = Math.min(1, maxSize / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';               // weißer Hintergrund (für transparente PNGs)
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    let q = quality;
+    let data = canvas.toDataURL('image/jpeg', q);
+    // Sicherheitsnetz: Bild deutlich unter 200 KB halten
+    while (dataUrlBytes(data) > 150 * 1024 && q > 0.35) {
+      q -= 0.1;
+      data = canvas.toDataURL('image/jpeg', q);
+    }
+    return data;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// HTML für das Foto-Feld (Kamera / Galerie / Entfernen)
+function photoFieldHTML() {
+  return `
+    <div class="photo-field">
+      <div class="photo-preview"></div>
+      <div class="photo-buttons">
+        <label class="btn btn-soft btn-sm">📷 Kamera<input class="file-input" type="file" accept="image/*" capture="environment"></label>
+        <label class="btn btn-soft btn-sm">🖼️ Galerie<input class="file-input" type="file" accept="image/*"></label>
+        <button type="button" class="btn btn-plain btn-sm photo-remove" hidden>Entfernen</button>
+      </div>
+    </div>`;
+}
+
+// Foto-Feld mit Leben füllen. onPick wird bei jeder Änderung aufgerufen.
+function wirePhotoField(root, initial, { onPick, confirmRemove = false } = {}) {
+  let current = safeImg(initial) || null;
+  let busy = false;
+  const preview = $('.photo-preview', root);
+  const removeBtn = $('.photo-remove', root);
+  const paint = () => {
+    preview.innerHTML = current
+      ? `<img src="${current}" alt="Foto">`
+      : `<div class="photo-empty">🌿<span>Noch kein Foto</span></div>`;
+    removeBtn.hidden = !current;
+  };
+  paint();
+
+  $$('.file-input', root).forEach(input => input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    busy = true;
+    preview.innerHTML = loadingHTML('Foto wird verkleinert …', true);
+    try {
+      current = await resizeImage(file);
+      await onPick?.(current);
+    } catch (err) {
+      toast(err.message || 'Foto konnte nicht verarbeitet werden.');
+    } finally {
+      busy = false;
+      paint();
+    }
+  }));
+
+  removeBtn.addEventListener('click', async () => {
+    if (confirmRemove) {
+      const ok = await confirmDelete('Foto entfernen?', 'Das Foto wird von dieser Pflanze gelöscht.');
+      if (!ok) return;
+    }
+    current = null;
+    paint();
+    await onPick?.(null);
+  });
+
+  return { get: () => current, busy: () => busy };
+}
+
+// ============================================================
+//  ANMELDUNG & PROFIL
+// ============================================================
+async function login() {
+  $('#loginError').hidden = true;
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (err) {
+    const code = err?.code || '';
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+    // Auf dem Handy: Wenn das Pop-up nicht geht, per Weiterleitung anmelden
+    const popupProblem = ['auth/popup-blocked', 'auth/operation-not-supported-in-environment', 'auth/web-storage-unsupported'].includes(code);
+    if (IS_MOBILE && popupProblem) {
+      try { await signInWithRedirect(auth, provider); return; }
+      catch (err2) { return showLoginError(err2); }
+    }
+    showLoginError(err);
+  }
+}
+
+function showLoginError(err) {
+  const c = err?.code || '';
+  let msg = 'Anmeldung fehlgeschlagen' + (c ? ` (${c})` : '') + '.';
+  if (c === 'auth/unauthorized-domain') msg = 'Diese Domain ist bei Firebase noch nicht freigegeben. Trage sie unter Authentication → Einstellungen → Autorisierte Domains ein.';
+  if (c === 'auth/popup-blocked') msg = 'Das Anmeldefenster wurde blockiert. Bitte erlaube Pop-ups für diese Seite.';
+  if (c === 'auth/network-request-failed') msg = 'Keine Internetverbindung.';
+  if (c === 'auth/operation-not-allowed') msg = 'Die Google-Anmeldung ist in Firebase noch nicht aktiviert.';
+  const el = $('#loginError');
+  el.textContent = msg;
+  el.hidden = false;
+}
+
+// Wird bei jeder Änderung des Anmeldestatus aufgerufen
+let authSeq = 0;
+let greetTimer = null;
+async function handleAuth(user) {
+  const seq = ++authSeq;
+  stopListeners();
+  clearTimeout(greetTimer);
+  closeSheet(true);
+  closeDetail(true);
+  state.chat = freshChat();
+
+  if (!user) {
+    state.user = null;
+    state.profile = null;
+    showScreen('login');
+    return;
+  }
+
+  state.user = user;
+  $('#loadingText').textContent = 'Profil wird geladen …';
+  $('#loadingActions').hidden = true;
+  showScreen('loading');
+  try {
+    const snap = await getDoc(userDoc());
+    if (seq !== authSeq) return;
+    if (snap.exists() && snap.data().name) {
+      state.profile = snap.data();
+      greetAndStart();
+    } else {
+      // Erster Login: Profil anlegen, Vorname von Google vorausfüllen
+      $('#profileName').value = (user.displayName || '').trim().split(/\s+/)[0] || '';
+      $('#profileError').hidden = true;
+      showScreen('profile');
+    }
+  } catch (err) {
+    if (seq !== authSeq) return;
+    console.error(err);
+    $('#loadingText').textContent = 'Dein Profil konnte nicht geladen werden. ' + errText(err);
+    $('#loadingActions').hidden = false;
+  }
+}
+
+// Begrüßung (ca. 2 Sekunden), dabei schon die Daten laden
+function greetAndStart() {
+  $('#greetText').textContent = `Hallo ${state.profile.name} 🌿`;
+  showScreen('greet');
+  startListeners();
+  greetTimer = setTimeout(() => {
+    showScreen('main');
+    switchTab('plants');
+  }, 2000);
+}
+
+async function logout() {
+  closeSheet(true);
+  closeDetail(true);
+  stopListeners();
+  try { await signOut(auth); } catch (err) { toast('Abmelden fehlgeschlagen: ' + errText(err)); }
+}
+
+// ============================================================
+//  FIRESTORE: Daten live laden
+// ============================================================
+function startListeners() {
+  stopListeners();
+  state.rooms = [];
+  state.plants = [];
+  state.wishes = [];
+  state.loaded = { rooms: false, plants: false, wishes: false };
+  const onErr = what => err => {
+    console.error(err);
+    toast(`${what} konnten nicht geladen werden: ${errText(err)}`);
+  };
+
+  state.unsubs.push(onSnapshot(query(col('rooms'), orderBy('order')), snap => {
+    state.rooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded.rooms = true;
+    renderPlants();
+    refreshDetail();
+    state.roomsSheetRender?.();
+  }, onErr('Räume')));
+
+  state.unsubs.push(onSnapshot(col('plants'), snap => {
+    state.plants = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded.plants = true;
+    renderPlants();
+    refreshDetail();
+    updateChatPlantSelect();
+  }, onErr('Pflanzen')));
+
+  state.unsubs.push(onSnapshot(col('wishlist'), snap => {
+    state.wishes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.loaded.wishes = true;
+    renderWishes();
+  }, onErr('Wünsche')));
+}
+
+function stopListeners() {
+  state.unsubs.forEach(unsub => unsub());
+  state.unsubs = [];
+}
+
+// ============================================================
+//  REITER 1: PFLANZEN-ÜBERSICHT
+// ============================================================
+function sortByUrgency(a, b) {
+  return daysUntilWater(a) - daysUntilWater(b) || a.name.localeCompare(b.name, 'de');
+}
+
+function plantCardHTML(p) {
+  const st = waterStatus(p);
+  const img = safeImg(p.photo);
+  const wateredToday = p.lastWatered === todayStr();
+  return `
+    <article class="plant-card" data-id="${esc(p.id)}" tabindex="0" role="button" aria-label="${esc(p.name)} öffnen">
+      <div class="thumb">${img ? `<img src="${img}" alt="" loading="lazy">` : '🪴'}</div>
+      <div class="plant-info">
+        <div class="plant-name">${esc(p.name)}</div>
+        ${p.species ? `<div class="plant-species">${esc(p.species)}</div>` : ''}
+      </div>
+      <div class="plant-actions">
+        <span class="badge ${st.cls}">${esc(st.text)}</span>
+        ${fertDue(p) ? '<span class="fert-chip">🧪 Diesmal mit Dünger</span>' : ''}
+        <button class="water-btn" data-action="water" data-id="${esc(p.id)}" ${wateredToday ? 'disabled title="Heute schon gegossen"' : ''}>Gegossen ✓</button>
+      </div>
+    </article>`;
+}
+
+function renderPlants() {
+  const el = $('#panel-plants');
+  if (!state.loaded.plants || !state.loaded.rooms) {
+    el.innerHTML = loadingHTML('Pflanzen werden geladen …');
+    return;
+  }
+  if (!state.plants.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-emoji">🪴</div>
+        <p>Noch keine Pflanzen – füge deine erste hinzu 🌱</p>
+        <button class="btn btn-primary" data-action="add-plant">Pflanze hinzufügen</button>
+        <button class="btn btn-soft btn-sm" data-action="rooms">🏠 Räume verwalten</button>
+      </div>`;
+    return;
+  }
+
+  // Zusammenfassung oben
+  const need = state.plants.filter(p => daysUntilWater(p) <= 0).length;
+  const summary = need === 0
+    ? '✨ Alles versorgt – heute braucht keine Pflanze Wasser'
+    : `💧 ${need === 1 ? '1 Pflanze braucht' : need + ' Pflanzen brauchen'} heute Wasser`;
+
+  // Nach Räumen gruppieren (in der festgelegten Reihenfolge)
+  const roomIds = new Set(state.rooms.map(r => r.id));
+  const groups = state.rooms
+    .map(r => ({ title: r.name, plants: state.plants.filter(p => p.roomId === r.id) }))
+    .filter(g => g.plants.length);
+  const noRoom = state.plants.filter(p => !p.roomId || !roomIds.has(p.roomId));
+  if (noRoom.length) groups.push({ title: 'Ohne Raum', plants: noRoom });
+
+  el.innerHTML = `
+    <div class="summary ${need ? 'attention' : ''}">${esc(summary)}</div>
+    <div class="toolbar"><button class="btn btn-soft btn-sm" data-action="rooms">🏠 Räume verwalten</button></div>
+    ${groups.map(g => `
+      <h2 class="room-title">${esc(g.title)} <span class="room-count">${g.plants.length}</span></h2>
+      <div class="card-list">${g.plants.sort(sortByUrgency).map(plantCardHTML).join('')}</div>
+    `).join('')}`;
+}
+
+// "Gegossen ✓": letztes Gießdatum auf heute, Zähler & Verlauf aktualisieren
+const wateringNow = new Set();
+async function waterPlant(p) {
+  if (wateringNow.has(p.id)) return;
+  let fertilized = false;
+  const every = Number(p.fertilizeEvery) || 0;
+  const count = Number(p.waterCount) || 0;
+
+  // Bei Pflanzen mit Dünge-Rhythmus nachfragen
+  if (every > 0) {
+    const rest = every - (count + 1);
+    const text = fertDue(p)
+      ? 'Laut Plan ist diesmal Dünger dran 🧪'
+      : rest === 1 ? 'Laut Plan ist erst beim nächsten Gießen Dünger dran.'
+        : `Laut Plan ist erst in ${rest} Gießvorgängen Dünger dran.`;
+    const answer = await dialog({
+      title: 'Auch gedüngt?', text,
+      buttons: [{ label: 'Nein', value: false }, { label: 'Ja, gedüngt', value: true, style: 'btn-primary' }]
+    });
+    if (answer === null) return;       // daneben getippt = abbrechen
+    fertilized = answer;
+  }
+
+  wateringNow.add(p.id);
+  const today = todayStr();
+  const history = [{ d: today, f: fertilized }, ...(Array.isArray(p.history) ? p.history : [])].slice(0, 50);
+  try {
+    await updateDoc(docIn('plants', p.id), {
+      lastWatered: today,
+      waterCount: fertilized ? 0 : count + 1,   // "Ja" setzt den Zähler zurück
+      history
+    });
+    toast(fertilized ? 'Gegossen und gedüngt 🌿' : 'Gegossen 💧');
+  } catch (err) {
+    toast('Speichern fehlgeschlagen: ' + errText(err));
+  } finally {
+    wateringNow.delete(p.id);
+  }
+}
+
+// ============================================================
+//  PFLANZEN-FORMULAR (Hinzufügen & Bearbeiten)
+// ============================================================
+function roomOptions(selected) {
+  const sel = selected && state.rooms.some(r => r.id === selected) ? selected : '';
+  return `<option value="" ${sel === '' ? 'selected' : ''}>Ohne Raum</option>`
+    + state.rooms.map(r => `<option value="${esc(r.id)}" ${r.id === sel ? 'selected' : ''}>${esc(r.name)}</option>`).join('')
+    + '<option value="__new">➕ Neuer Raum …</option>';
+}
+
+function plantFieldsHTML(v) {
+  const today = todayStr();
+  return `
+    <label class="field"><span>Name *</span>
+      <input name="name" maxlength="60" value="${esc(v.name || '')}" placeholder="z. B. Monstera im Flur"></label>
+    <label class="field"><span>Art / Sorte <em>(optional)</em></span>
+      <input name="species" maxlength="80" value="${esc(v.species || '')}" placeholder="z. B. Monstera deliciosa"></label>
+    <label class="field"><span>Raum</span>
+      <select name="room">${roomOptions(v.roomId)}</select></label>
+    <label class="field new-room" hidden><span>Name des neuen Raums</span>
+      <input name="newRoom" maxlength="40" placeholder="z. B. Küche"></label>
+    <div class="field-row">
+      <label class="field"><span>Gießen alle … Tage</span>
+        <input name="interval" type="number" inputmode="numeric" min="1" max="365" value="${esc(v.intervalDays || 7)}"></label>
+      <label class="field"><span>Düngen bei jedem …-ten Gießen <em>(optional)</em></span>
+        <input name="fert" type="number" inputmode="numeric" min="1" max="50" value="${esc(Number(v.fertilizeEvery) > 0 ? v.fertilizeEvery : '')}" placeholder="z. B. 4"></label>
+    </div>
+    <div class="field-row">
+      <label class="field"><span>Im Besitz seit</span>
+        <input name="owned" type="date" max="${today}" value="${esc(v.ownedSince || today)}"></label>
+      <label class="field"><span>Zuletzt gegossen</span>
+        <input name="lastWatered" type="date" max="${today}" value="${esc(v.lastWatered || today)}"></label>
+    </div>
+    <label class="field"><span>Notizen</span>
+      <textarea name="notes" rows="3" maxlength="2000" placeholder="z. B. mag keine direkte Sonne">${esc(v.notes || '')}</textarea></label>
+    <p class="form-error" hidden></p>`;
+}
+
+// "Neuer Raum …" zeigt ein Eingabefeld
+function wireRoomSelect(form) {
+  const select = form.elements.namedItem('room');
+  const box = $('.new-room', form);
+  select.addEventListener('change', () => {
+    box.hidden = select.value !== '__new';
+    if (!box.hidden) $('input', box).focus();
+  });
+}
+
+// Formular auslesen und prüfen
+function readPlantForm(form) {
+  const val = n => String(form.elements.namedItem(n)?.value ?? '').trim();
+  const name = val('name');
+  if (!name) return { error: 'Bitte gib einen Namen ein.' };
+  const interval = Number(val('interval'));
+  if (!Number.isInteger(interval) || interval < 1 || interval > 365) return { error: 'Das Gieß-Intervall muss eine ganze Zahl zwischen 1 und 365 Tagen sein.' };
+  let fert = 0;
+  if (val('fert')) {
+    fert = Number(val('fert'));
+    if (!Number.isInteger(fert) || fert < 1 || fert > 50) return { error: 'Dünge-Rhythmus: bitte eine ganze Zahl von 1 bis 50 – oder das Feld leer lassen.' };
+  }
+  const owned = val('owned') || todayStr();
+  const last = val('lastWatered') || todayStr();
+  if (!isYmd(owned) || !isYmd(last)) return { error: 'Bitte prüfe die Datumsangaben.' };
+  if (last > todayStr()) return { error: 'Das letzte Gießen kann nicht in der Zukunft liegen.' };
+  const room = val('room');
+  const newRoom = val('newRoom');
+  if (room === '__new' && !newRoom) return { error: 'Bitte gib einen Namen für den neuen Raum ein.' };
+  return {
+    values: {
+      name, species: val('species'), room, newRoom,
+      intervalDays: interval, fertilizeEvery: fert,
+      ownedSince: owned, lastWatered: last, notes: val('notes')
+    }
+  };
+}
+
+// Raum-ID ermitteln – legt bei Bedarf einen neuen Raum an
+async function resolveRoom(values) {
+  if (values.room !== '__new') return values.room || null;
+  const existing = state.rooms.find(r => r.name.toLowerCase() === values.newRoom.toLowerCase());
+  if (existing) return existing.id;
+  const order = state.rooms.reduce((m, r) => Math.max(m, Number(r.order) || 0), -1) + 1;
+  const ref = await addDoc(col('rooms'), { name: values.newRoom, order, createdAt: serverTimestamp() });
+  return ref.id;
+}
+
+// Sheet "Pflanze hinzufügen" (prefill z. B. aus der Wunschliste)
+function openPlantSheet({ prefill = {}, onSaved } = {}) {
+  const today = todayStr();
+  const v = { intervalDays: 7, ownedSince: today, lastWatered: today, ...prefill };
+  const el = openSheet({
+    title: 'Pflanze hinzufügen',
+    html: `<form class="stack" novalidate>
+      ${photoFieldHTML()}
+      ${plantFieldsHTML(v)}
+      <button type="submit" class="btn btn-primary btn-block">Pflanze speichern</button>
+    </form>`
+  });
+  const form = $('form', el);
+  const photo = wirePhotoField(form, v.photo);
+  wireRoomSelect(form);
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const { values, error } = readPlantForm(form);
+    if (error) return showFormError(form, error);
+    if (photo.busy()) return showFormError(form, 'Das Foto wird noch verarbeitet – einen Moment bitte.');
+    showFormError(form, '');
+    const btn = $('button[type=submit]', form);
+    setBusy(btn, true, 'Wird gespeichert …');
+    try {
+      const roomId = await resolveRoom(values);
+      await addDoc(col('plants'), {
+        name: values.name,
+        species: values.species,
+        roomId,
+        intervalDays: values.intervalDays,
+        fertilizeEvery: values.fertilizeEvery,
+        waterCount: 0,
+        ownedSince: values.ownedSince,
+        lastWatered: values.lastWatered,
+        notes: values.notes,
+        photo: photo.get(),
+        history: [],
+        createdAt: serverTimestamp()
+      });
+      closeSheet();
+      toast('Pflanze gespeichert 🌱');
+      await onSaved?.();
+    } catch (err) {
+      setBusy(btn, false);
+      showFormError(form, 'Speichern fehlgeschlagen: ' + errText(err));
+    }
+  });
+}
+
+// ============================================================
+//  RÄUME VERWALTEN (anlegen, umbenennen, löschen, sortieren)
+// ============================================================
+function openRoomsSheet() {
+  const el = openSheet({
+    title: 'Räume verwalten',
+    html: `
+      <div class="rooms-list"></div>
+      <form class="add-room" novalidate>
+        <input name="room" maxlength="40" placeholder="Neuer Raum, z. B. Küche" aria-label="Neuer Raum">
+        <button class="btn btn-primary" type="submit">Hinzufügen</button>
+      </form>
+      <p class="hint" style="margin-top:12px">Pflanzen aus gelöschten Räumen landen unter „Ohne Raum“.</p>`,
+    onClose: () => { state.roomsSheetRender = null; }
+  });
+  const list = $('.rooms-list', el);
+
+  const render = () => {
+    if (!state.rooms.length) {
+      list.innerHTML = '<p class="muted">Noch keine Räume. Lege unten deinen ersten an.</p>';
+      return;
+    }
+    const last = state.rooms.length - 1;
+    list.innerHTML = state.rooms.map((r, i) => `
+      <div class="room-row" data-id="${esc(r.id)}">
+        <input class="room-name" value="${esc(r.name)}" maxlength="40" aria-label="Name des Raums">
+        <button class="icon-btn sm" data-action="up" ${i === 0 ? 'disabled' : ''} aria-label="Nach oben">↑</button>
+        <button class="icon-btn sm" data-action="down" ${i === last ? 'disabled' : ''} aria-label="Nach unten">↓</button>
+        <button class="icon-btn sm" data-action="delete" aria-label="Raum löschen">🗑️</button>
+      </div>`).join('');
+  };
+  state.roomsSheetRender = render;
+  render();
+
+  // Umbenennen, sobald das Feld verlassen wird
+  list.addEventListener('change', async e => {
+    const input = e.target.closest('.room-name');
+    if (!input) return;
+    const id = input.closest('.room-row').dataset.id;
+    const room = state.rooms.find(r => r.id === id);
+    const name = input.value.trim();
+    if (!room) return;
+    if (!name) { input.value = room.name; return; }
+    if (name === room.name) return;
+    try { await updateDoc(docIn('rooms', id), { name }); toast('Raum umbenannt ✓'); }
+    catch (err) { toast('Fehler: ' + errText(err)); }
+  });
+
+  list.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.closest('.room-row').dataset.id;
+    const action = btn.dataset.action;
+    if (action === 'up' || action === 'down') await moveRoom(id, action === 'up' ? -1 : 1);
+    if (action === 'delete') await deleteRoom(id);
+  });
+
+  $('.add-room', el).addEventListener('submit', async e => {
+    e.preventDefault();
+    const input = e.target.elements.namedItem('room');
+    const name = input.value.trim();
+    if (!name) return input.focus();
+    if (state.rooms.some(r => r.name.toLowerCase() === name.toLowerCase())) return toast('Diesen Raum gibt es schon.');
+    const order = state.rooms.reduce((m, r) => Math.max(m, Number(r.order) || 0), -1) + 1;
+    input.value = '';
+    try { await addDoc(col('rooms'), { name, order, createdAt: serverTimestamp() }); }
+    catch (err) { toast('Fehler: ' + errText(err)); }
+  });
+}
+
+async function moveRoom(id, dir) {
+  const arr = [...state.rooms];
+  const i = arr.findIndex(r => r.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  const batch = writeBatch(db);
+  arr.forEach((r, idx) => batch.update(docIn('rooms', r.id), { order: idx }));
+  try { await batch.commit(); } catch (err) { toast('Fehler: ' + errText(err)); }
+}
+
+async function deleteRoom(id) {
+  const room = state.rooms.find(r => r.id === id);
+  if (!room) return;
+  const inside = state.plants.filter(p => p.roomId === id);
+  const ok = await confirmDelete(`Raum „${room.name}“ löschen?`,
+    inside.length ? `${plural(inside.length, 'Pflanze', 'Pflanzen')} darin ${inside.length === 1 ? 'landet' : 'landen'} unter „Ohne Raum“.` : 'Der Raum ist leer.');
+  if (!ok) return;
+  const batch = writeBatch(db);
+  batch.delete(docIn('rooms', id));
+  inside.forEach(p => batch.update(docIn('plants', p.id), { roomId: null }));
+  try { await batch.commit(); toast('Raum gelöscht'); } catch (err) { toast('Fehler: ' + errText(err)); }
+}
+
+// ============================================================
+//  DETAILANSICHT EINER PFLANZE
+// ============================================================
+function openDetail(id) {
+  const p = findPlant(id);
+  if (!p) return;
+  state.detailId = id;
+  const el = $('#detail');
+  el.innerHTML = `
+    <header class="detail-head">
+      <button class="icon-btn" data-action="back" aria-label="Zurück">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <h2 class="detail-title"></h2>
+      <span style="width:44px"></span>
+    </header>
+    <div class="detail-scroll">
+      <div class="detail-photo">${photoFieldHTML()}</div>
+      <div class="card detail-info"></div>
+      <section class="card">
+        <h3>Angaben bearbeiten</h3>
+        <form class="stack detail-form" novalidate>
+          ${plantFieldsHTML(p)}
+          <button type="submit" class="btn btn-primary btn-block">Änderungen speichern</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>Verlauf</h3>
+        <div class="history-wrap"></div>
+      </section>
+      <button class="btn btn-danger-soft btn-block" data-action="delete">Pflanze löschen</button>
+    </div>`;
+  el.hidden = false;
+  el.offsetHeight;
+  el.classList.add('open');
+  $('.detail-scroll', el).scrollTop = 0;
+
+  // Foto: Änderungen werden sofort gespeichert
+  wirePhotoField($('.detail-photo', el), p.photo, {
+    confirmRemove: true,
+    onPick: async photo => {
+      try {
+        await updateDoc(docIn('plants', id), { photo });
+        toast(photo ? 'Foto gespeichert 📷' : 'Foto entfernt');
+      } catch (err) { toast('Foto konnte nicht gespeichert werden: ' + errText(err)); }
+    }
+  });
+
+  // Angaben speichern
+  const form = $('.detail-form', el);
+  wireRoomSelect(form);
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const { values, error } = readPlantForm(form);
+    if (error) return showFormError(form, error);
+    showFormError(form, '');
+    const btn = $('button[type=submit]', form);
+    setBusy(btn, true, 'Wird gespeichert …');
+    try {
+      const roomId = await resolveRoom(values);
+      await updateDoc(docIn('plants', id), {
+        name: values.name,
+        species: values.species,
+        roomId,
+        intervalDays: values.intervalDays,
+        fertilizeEvery: values.fertilizeEvery,
+        ownedSince: values.ownedSince,
+        lastWatered: values.lastWatered,
+        notes: values.notes
+      });
+      form.elements.namedItem('room').innerHTML = roomOptions(roomId);
+      form.elements.namedItem('newRoom').value = '';
+      $('.new-room', form).hidden = true;
+      toast('Änderungen gespeichert ✓');
+    } catch (err) {
+      showFormError(form, 'Speichern fehlgeschlagen: ' + errText(err));
+    } finally {
+      setBusy(btn, false);
+    }
+  });
+
+  renderDetailTop(p);
+}
+
+// Oberer Bereich + Verlauf (wird bei jeder Datenänderung aktualisiert,
+// das Formular bleibt dabei unangetastet)
+function renderDetailTop(p) {
+  const el = $('#detail');
+  $('.detail-title', el).textContent = p.name;
+  const st = waterStatus(p);
+  const room = roomName(p.roomId);
+  const every = Number(p.fertilizeEvery) || 0;
+  const count = Number(p.waterCount) || 0;
+  $('.detail-info', el).innerHTML = `
+    <h1>${esc(p.name)}</h1>
+    ${p.species ? `<div class="muted">${esc(p.species)}</div>` : ''}
+    <p class="owned">🏡 ${esc(ownedText(p.ownedSince))}${room ? ' · ' + esc(room) : ''}</p>
+    <div class="detail-status">
+      <span class="badge ${st.cls}">${esc(st.text)}</span>
+      ${fertDue(p) ? '<span class="fert-chip">🧪 Diesmal mit Dünger</span>' : ''}
+    </div>
+    ${every ? `<p class="fert-info">🧪 Düngen bei jedem ${every}. Gießen · seit dem letzten Düngen ${count}× gegossen</p>` : ''}
+    <button class="btn btn-primary btn-block" data-action="water" ${p.lastWatered === todayStr() ? 'disabled title="Heute schon gegossen"' : ''}>Gegossen ✓</button>`;
+
+  const history = (Array.isArray(p.history) ? p.history : []).slice(0, 15);
+  $('.history-wrap', el).innerHTML = history.length
+    ? `<ul class="history">${history.map(h => `
+        <li><span>${h.f ? '💧🧪' : '💧'}</span><span>${h.f ? 'Gegossen + gedüngt' : 'Gegossen'}</span><span class="h-date">${esc(formatDate(h.d))}</span></li>`).join('')}</ul>`
+    : '<p class="muted">Noch keine Einträge. Tippe auf „Gegossen ✓“, dann erscheint hier der Verlauf.</p>';
+}
+
+function refreshDetail() {
+  if (!state.detailId) return;
+  const p = findPlant(state.detailId);
+  if (!p) closeDetail();
+  else renderDetailTop(p);
+}
+
+function closeDetail(immediate = false) {
+  const el = $('#detail');
+  if (state.detailId === null && el.hidden) return;
+  state.detailId = null;
+  el.classList.remove('open');
+  const finish = () => { if (state.detailId === null) { el.hidden = true; el.innerHTML = ''; } };
+  if (immediate) finish(); else setTimeout(finish, 300);
+}
+
+async function deletePlant(p) {
+  const ok = await confirmDelete('Pflanze löschen?', `„${p.name}“ wird mit Foto und Verlauf endgültig gelöscht.`);
+  if (!ok) return;
+  try {
+    await deleteDoc(docIn('plants', p.id));
+    closeDetail();
+    toast('Pflanze gelöscht');
+  } catch (err) { toast('Löschen fehlgeschlagen: ' + errText(err)); }
+}
+
+// ============================================================
+//  REITER 3: WUNSCHLISTE
+// ============================================================
+const PRIO_LABEL = { 1: 'Niedrig', 2: 'Mittel', 3: 'Hoch' };
+
+function renderWishes() {
+  const el = $('#panel-wish');
+  if (!state.loaded.wishes) { el.innerHTML = loadingHTML('Wunschliste wird geladen …'); return; }
+  if (!state.wishes.length) {
+    el.innerHTML = `
+      <div class="empty">
+        <div class="empty-emoji">💚</div>
+        <p>Deine Wunschliste ist noch leer – notiere hier Pflanzen, die du gern hättest ✨</p>
+        <button class="btn btn-primary" data-action="add-wish">Wunsch hinzufügen</button>
+      </div>`;
+    return;
+  }
+  // Nach Priorität sortieren (hoch zuerst), dann nach Name
+  const list = [...state.wishes].sort((a, b) =>
+    (Number(b.priority) || 2) - (Number(a.priority) || 2) || String(a.name).localeCompare(String(b.name), 'de'));
+  el.innerHTML = `
+    <p class="list-hint">Sortiert nach Priorität</p>
+    <div class="card-list">
+      ${list.map(w => {
+        const img = safeImg(w.photo);
+        const prio = [1, 2, 3].includes(Number(w.priority)) ? Number(w.priority) : 2;
+        return `
+        <article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="${esc(w.name)} bearbeiten">
+          <div class="thumb">${img ? `<img src="${img}" alt="" loading="lazy">` : '🌱'}</div>
+          <div class="wish-info">
+            <div class="wish-name">${esc(w.name)}</div>
+            <span class="prio prio-${prio}">${PRIO_LABEL[prio]}</span>
+            ${w.note ? `<div class="wish-note">${esc(w.note)}</div>` : ''}
+          </div>
+          <button class="btn btn-primary btn-sm" data-action="bought" data-id="${esc(w.id)}">Gekauft!</button>
+        </article>`;
+      }).join('')}
+    </div>`;
+}
+
+function openWishSheet(w = null) {
+  const prio = [1, 2, 3].includes(Number(w?.priority)) ? Number(w.priority) : 2;
+  const el = openSheet({
+    title: w ? 'Wunsch bearbeiten' : 'Wunsch hinzufügen',
+    html: `<form class="stack" novalidate>
+      ${photoFieldHTML()}
+      <label class="field"><span>Name *</span>
+        <input name="name" maxlength="60" value="${esc(w?.name || '')}" placeholder="z. B. Monstera Thai Constellation"></label>
+      <label class="field"><span>Notiz <em>(optional)</em></span>
+        <textarea name="note" rows="3" maxlength="1000" placeholder="z. B. im Gartencenter gesehen, ca. 25 €">${esc(w?.note || '')}</textarea></label>
+      <fieldset class="field"><legend>Priorität</legend>
+        <div class="segmented">
+          ${[1, 2, 3].map(n => `<label><input type="radio" name="priority" value="${n}" ${n === prio ? 'checked' : ''}><span>${PRIO_LABEL[n]}</span></label>`).join('')}
+        </div>
+      </fieldset>
+      <p class="form-error" hidden></p>
+      <button type="submit" class="btn btn-primary btn-block">Speichern</button>
+      ${w ? '<button type="button" class="btn btn-danger-soft btn-block" data-action="delete-wish">Von der Wunschliste löschen</button>' : ''}
+    </form>`
+  });
+  const form = $('form', el);
+  const photo = wirePhotoField(form, w?.photo);
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = form.elements.namedItem('name').value.trim();
+    if (!name) return showFormError(form, 'Bitte gib einen Namen ein.');
+    if (photo.busy()) return showFormError(form, 'Das Foto wird noch verarbeitet – einen Moment bitte.');
+    const data = {
+      name,
+      note: form.elements.namedItem('note').value.trim(),
+      priority: Number(form.elements.namedItem('priority').value) || 2,
+      photo: photo.get()
+    };
+    const btn = $('button[type=submit]', form);
+    setBusy(btn, true, 'Wird gespeichert …');
+    try {
+      if (w) await updateDoc(docIn('wishlist', w.id), data);
+      else await addDoc(col('wishlist'), { ...data, createdAt: serverTimestamp() });
+      closeSheet();
+      toast(w ? 'Gespeichert ✓' : 'Auf die Wunschliste gesetzt 💚');
+    } catch (err) {
+      setBusy(btn, false);
+      showFormError(form, 'Speichern fehlgeschlagen: ' + errText(err));
+    }
+  });
+
+  $('[data-action="delete-wish"]', form)?.addEventListener('click', async () => {
+    const ok = await confirmDelete('Wunsch löschen?', `„${w.name}“ wird von der Wunschliste entfernt.`);
+    if (!ok) return;
+    try { await deleteDoc(docIn('wishlist', w.id)); closeSheet(); toast('Wunsch gelöscht'); }
+    catch (err) { toast('Löschen fehlgeschlagen: ' + errText(err)); }
+  });
+}
+
+// "Gekauft!": Formular "Pflanze hinzufügen" vorausgefüllt öffnen,
+// nach dem Speichern den Wunsch entfernen
+function buyWish(w) {
+  openPlantSheet({
+    prefill: { name: w.name, photo: w.photo || null, notes: w.note || '' },
+    onSaved: async () => {
+      try { await deleteDoc(docIn('wishlist', w.id)); } catch (err) { toast('Wunsch konnte nicht entfernt werden: ' + errText(err)); return; }
+      switchTab('plants');
+      toast('Glückwunsch zur neuen Pflanze! 🌱');
+    }
+  });
+}
+
+// ============================================================
+//  REITER 2: PFLANZEN-CHAT (Google Gemini)
+// ============================================================
+function getApiKey() {
+  try { return localStorage.getItem(API_KEY_STORAGE) || ''; } catch { return ''; }
+}
+
+function renderChat(force = false) {
+  const el = $('#panel-chat');
+  // Ohne Schlüssel: Hinweis, wie man einen bekommt
+  if (!getApiKey()) {
+    el.innerHTML = `
+      <div class="card key-card">
+        <div class="empty-emoji">🔑</div>
+        <h3>Gemini-API-Schlüssel benötigt</h3>
+        <p>Der Pflanzen-Chat nutzt Googles KI „Gemini“. Dafür brauchst du einen kostenlosen API-Schlüssel:</p>
+        <ol>
+          <li>Öffne <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> und melde dich mit deinem Google-Konto an.</li>
+          <li>Tippe auf „API-Schlüssel erstellen“ (englisch „Create API key“) und kopiere ihn.</li>
+          <li>Füge ihn in den Einstellungen (Zahnrad oben rechts) ein.</li>
+        </ol>
+        <p class="hint">Der Schlüssel wird nur in diesem Browser gespeichert – nicht im Code und nicht in der Cloud.</p>
+        <button class="btn btn-primary btn-block" data-action="open-settings">Einstellungen öffnen</button>
+      </div>`;
+    return;
+  }
+  if (!state.chat.loaded) {
+    el.innerHTML = loadingHTML('Chat wird geladen …');
+    loadLatestChat();
+    return;
+  }
+  // Grundgerüst nur neu bauen, wenn nötig (sonst ginge ein angefangener Text verloren)
+  if (force || !$('.chat-form', el)) {
+    el.innerHTML = `
+      <div class="chat-top">
+        <select class="chat-plant" aria-label="Pflanze als Kontext für die KI"></select>
+        <button class="btn btn-soft btn-sm" data-action="new-chat">Neuer Chat</button>
+      </div>
+      <p class="chat-disclaimer">KI-Antworten können fehlerhaft sein – prüfe wichtige Tipps lieber nach.</p>
+      <div class="chat-messages" aria-live="polite"></div>
+      <form class="chat-form" novalidate>
+        <textarea rows="1" maxlength="2000" placeholder="Frag etwas zu deinen Pflanzen …" aria-label="Nachricht"></textarea>
+        <button class="send-btn" type="submit" aria-label="Senden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </button>
+      </form>`;
+  }
+  updateChatPlantSelect();
+  renderChatMessages();
+}
+
+// Pflanzen-Auswahl im Chat aktualisieren
+function updateChatPlantSelect() {
+  const select = $('#panel-chat .chat-plant');
+  if (!select) return;
+  const plants = [...state.plants].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  if (!plants.some(p => p.id === state.chat.plantId)) state.chat.plantId = '';
+  select.innerHTML = '<option value="">Keine bestimmte Pflanze</option>'
+    + plants.map(p => `<option value="${esc(p.id)}" ${p.id === state.chat.plantId ? 'selected' : ''}>🪴 ${esc(p.name)}${p.species ? ' (' + esc(p.species) + ')' : ''}</option>`).join('');
+}
+
+// Antworten der KI leicht formatieren (fett, kursiv, Listen)
+function formatAI(text) {
+  const inline = s => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*(?!\s)(.+?)\*(?=[\s).,!?:;]|$)/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  let html = '';
+  let list = null;
+  const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+  for (const raw of String(text).replace(/\r/g, '').split('\n')) {
+    const line = raw.trim();
+    let m;
+    if ((m = line.match(/^[-*•]\s+(.*)$/))) {
+      if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; }
+      html += `<li>${inline(m[1])}</li>`;
+    } else if ((m = line.match(/^\d+[.)]\s+(.*)$/))) {
+      if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; }
+      html += `<li>${inline(m[1])}</li>`;
+    } else {
+      closeList();
+      if (!line) continue;
+      if ((m = line.match(/^#{1,6}\s+(.*)$/))) html += `<p><strong>${inline(m[1])}</strong></p>`;
+      else html += `<p>${inline(line)}</p>`;
+    }
+  }
+  closeList();
+  return html;
+}
+
+function renderChatMessages() {
+  const box = $('#panel-chat .chat-messages');
+  if (!box) return;
+  const { messages, sending, error } = state.chat;
+  if (!messages.length && !sending && !error) {
+    box.innerHTML = `
+      <div class="chat-empty">
+        <div class="empty-emoji">🌿</div>
+        <p>Hallo ${esc(state.profile?.name || '')}! Ich beantworte deine Fragen rund um Pflanzen. Zum Beispiel:</p>
+        <ul>
+          <li>Warum bekommt meine Monstera gelbe Blätter?</li>
+          <li>Wie viel Licht braucht eine Calathea?</li>
+          <li>Was hilft gegen Trauermücken?</li>
+        </ul>
+      </div>`;
+  } else {
+    box.innerHTML = messages.map(m => m.role === 'user'
+      ? `<div class="msg msg-user">${esc(m.text).replace(/\n/g, '<br>')}</div>`
+      : `<div class="msg msg-ai">${formatAI(m.text)}</div>`).join('')
+      + (sending ? '<div class="msg msg-ai typing" aria-label="KI schreibt"><span></span><span></span><span></span></div>' : '')
+      + (error ? `<div class="msg msg-error">${esc(error)}</div>` : '');
+  }
+  box.scrollTop = box.scrollHeight;
+  const sendBtn = $('#panel-chat .send-btn');
+  if (sendBtn) sendBtn.disabled = sending;
+}
+
+// Letzten Chat aus Firestore laden
+async function loadLatestChat() {
+  if (state.chat.loading) return;
+  state.chat.loading = true;
+  const uid = state.user?.uid;
+  try {
+    const snap = await getDocs(query(col('chats'), orderBy('updatedAt', 'desc'), limit(1)));
+    if (uid !== state.user?.uid) return;
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      const data = d.data();
+      state.chat.id = d.id;
+      state.chat.messages = Array.isArray(data.messages) ? data.messages : [];
+      state.chat.plantId = data.plantId || '';
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Chatverlauf konnte nicht geladen werden.');
+  }
+  state.chat.loading = false;
+  state.chat.loaded = true;
+  if (state.tab === 'chat') renderChat();
+}
+
+// Chat in Firestore speichern
+async function saveChat() {
+  const data = {
+    messages: state.chat.messages.slice(-100),
+    plantId: state.chat.plantId || null,
+    updatedAt: serverTimestamp()
+  };
+  if (state.chat.id) {
+    await updateDoc(docIn('chats', state.chat.id), data);
+  } else {
+    const ref = await addDoc(col('chats'), { ...data, createdAt: serverTimestamp() });
+    state.chat.id = ref.id;
+  }
+}
+
+// Verlauf ins Gemini-Format bringen (Rollen müssen sich abwechseln)
+function buildContents(messages) {
+  const out = [];
+  for (const m of messages.slice(-20)) {
+    const role = m.role === 'user' ? 'user' : 'model';
+    const last = out[out.length - 1];
+    if (last && last.role === role) last.parts[0].text += '\n\n' + m.text;
+    else out.push({ role, parts: [{ text: m.text }] });
+  }
+  while (out.length && out[0].role !== 'user') out.shift();
+  return out;
+}
+
+// Anfrage an die Gemini-API (direkt per fetch)
+async function askGemini(messages, plant) {
+  const key = getApiKey();
+  if (!key) throw new Error('Kein API-Schlüssel hinterlegt.');
+  let system = SYSTEM_PROMPT;
+  if (plant) {
+    system += `\n\nDer Nutzer fragt zu dieser eigenen Pflanze:
+- Name: ${plant.name}
+- Art/Sorte: ${plant.species || 'unbekannt'}
+- Gieß-Intervall: alle ${plant.intervalDays} Tage
+- Raum: ${roomName(plant.roomId) || 'ohne Raum'}`;
+  }
+  let res;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: buildContents(messages)
+      })
+    });
+  } catch {
+    throw new Error('Keine Verbindung zur KI. Prüfe deine Internetverbindung.');
+  }
+  let data = {};
+  try { data = await res.json(); } catch { /* leere Antwort */ }
+  if (!res.ok) {
+    const m = data?.error?.message || '';
+    if (res.status === 400 && /api.?key/i.test(m)) throw new Error('Der API-Schlüssel ist ungültig. Prüfe ihn in den Einstellungen (Zahnrad).');
+    if (res.status === 403) throw new Error('Zugriff verweigert – ist der API-Schlüssel richtig?');
+    if (res.status === 404) throw new Error(`Das KI-Modell „${GEMINI_MODEL}“ wurde nicht gefunden. Passe GEMINI_MODEL oben in index.html an.`);
+    if (res.status === 429) throw new Error('Das kostenlose Kontingent ist gerade ausgeschöpft. Versuch es in einer Minute noch einmal.');
+    if (res.status >= 500) throw new Error('Die KI ist gerade überlastet. Bitte gleich noch einmal versuchen.');
+    throw new Error(`Fehler der KI (${res.status})${m ? ': ' + m : ''}`);
+  }
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const text = parts.filter(p => !p.thought).map(p => p.text || '').join('').trim();
+  if (!text) throw new Error('Die KI hat keine Antwort geliefert. Formuliere die Frage bitte etwas anders.');
+  return text;
+}
+
+async function sendChat(text) {
+  if (state.chat.sending) return;
+  state.chat.error = '';
+  state.chat.messages.push({ role: 'user', text });
+  state.chat.sending = true;
+  renderChatMessages();
+  try { await saveChat(); } catch (err) { console.error(err); toast('Chat konnte nicht gespeichert werden.'); }
+  try {
+    const reply = await askGemini(state.chat.messages, findPlant(state.chat.plantId));
+    state.chat.messages.push({ role: 'model', text: reply });
+    try { await saveChat(); } catch (err) { console.error(err); }
+  } catch (err) {
+    state.chat.error = err.message;
+  } finally {
+    state.chat.sending = false;
+    renderChatMessages();
+  }
+}
+
+function newChat() {
+  if (state.chat.sending) return;
+  state.chat = { ...freshChat(), loaded: true };
+  renderChat(true);
+}
+
+function autoGrow(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 130) + 'px';
+}
+
+// ============================================================
+//  EINSTELLUNGEN (Zahnrad oben rechts)
+// ============================================================
+function openSettings() {
+  const el = openSheet({
+    title: 'Einstellungen',
+    html: `
+      <form class="stack" novalidate>
+        <label class="field"><span>Dein Name</span>
+          <input name="name" maxlength="40" value="${esc(state.profile?.name || '')}"></label>
+        <label class="field"><span>Gemini-API-Schlüssel (für den Pflanzen-Chat)</span>
+          <input name="key" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" value="${esc(getApiKey())}"></label>
+        <p class="hint">Der Schlüssel wird nur in diesem Browser gespeichert. Kostenlos erhältlich unter
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+          Feld leeren und speichern = Schlüssel entfernen.</p>
+        <p class="form-error" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">Speichern</button>
+      </form>
+      <hr class="sep">
+      <button type="button" class="btn btn-danger-soft btn-block" data-action="logout">Abmelden</button>`
+  });
+  const form = $('form', el);
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = form.elements.namedItem('name').value.trim();
+    const key = form.elements.namedItem('key').value.trim();
+    if (!name) return showFormError(form, 'Bitte gib einen Namen ein.');
+    const btn = $('button[type=submit]', form);
+    setBusy(btn, true, 'Wird gespeichert …');
+    try {
+      if (name !== state.profile.name) {
+        await setDoc(userDoc(), { name }, { merge: true });
+        state.profile.name = name;
+      }
+      try {
+        if (key) localStorage.setItem(API_KEY_STORAGE, key);
+        else localStorage.removeItem(API_KEY_STORAGE);
+      } catch { throw new Error('Der Browser erlaubt kein lokales Speichern.'); }
+      closeSheet();
+      toast('Einstellungen gespeichert ✓');
+      if (state.tab === 'chat') renderChat(true);
+    } catch (err) {
+      setBusy(btn, false);
+      showFormError(form, 'Speichern fehlgeschlagen: ' + errText(err));
+    }
+  });
+  $('[data-action="logout"]', el).addEventListener('click', logout);
+}
+
+// ============================================================
+//  REITER WECHSELN
+// ============================================================
+function switchTab(tab) {
+  state.tab = tab;
+  $$('.tab').forEach(b => {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  const fab = $('#fab');
+  fab.hidden = tab === 'chat';
+  fab.setAttribute('aria-label', tab === 'wish' ? 'Wunsch hinzufügen' : 'Pflanze hinzufügen');
+  if (tab === 'chat') renderChat();
+}
+
+// ============================================================
+//  EREIGNISSE VERKNÜPFEN & START
+// ============================================================
+function wireEvents() {
+  $('#btnLogin').addEventListener('click', login);
+  $('#btnSettings').addEventListener('click', openSettings);
+  $('#btnRetry').addEventListener('click', () => location.reload());
+  $('#btnLoadingLogout').addEventListener('click', logout);
+  $$('.tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+  $('#fab').addEventListener('click', () => (state.tab === 'wish' ? openWishSheet() : openPlantSheet()));
+
+  // Profil beim ersten Login anlegen
+  $('#profileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = $('#profileName').value.trim();
+    const errEl = $('#profileError');
+    if (!name) { errEl.textContent = 'Bitte gib einen Namen ein.'; errEl.hidden = false; return; }
+    const btn = $('button[type=submit]', e.target);
+    setBusy(btn, true, 'Wird gespeichert …');
+    try {
+      await setDoc(userDoc(), { name, createdAt: serverTimestamp() });
+      state.profile = { name };
+      greetAndStart();
+    } catch (err) {
+      errEl.textContent = 'Speichern fehlgeschlagen: ' + errText(err);
+      errEl.hidden = false;
+    } finally {
+      setBusy(btn, false);
+    }
+  });
+
+  // Pflanzen-Reiter: Klicks auf Karten und Buttons
+  $('#panel-plants').addEventListener('click', e => {
+    const act = e.target.closest('[data-action]');
+    if (act) {
+      const a = act.dataset.action;
+      if (a === 'add-plant') openPlantSheet();
+      if (a === 'rooms') openRoomsSheet();
+      if (a === 'water') { const p = findPlant(act.dataset.id); if (p) waterPlant(p); }
+      return;
+    }
+    const card = e.target.closest('.plant-card');
+    if (card) openDetail(card.dataset.id);
+  });
+
+  // Wunschliste: Klicks
+  $('#panel-wish').addEventListener('click', e => {
+    const act = e.target.closest('[data-action]');
+    if (act) {
+      if (act.dataset.action === 'add-wish') openWishSheet();
+      if (act.dataset.action === 'bought') { const w = findWish(act.dataset.id); if (w) buyWish(w); }
+      return;
+    }
+    const card = e.target.closest('.wish-card');
+    if (card) { const w = findWish(card.dataset.id); if (w) openWishSheet(w); }
+  });
+
+  // Karten auch per Tastatur öffnen (Enter)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const card = e.target.closest?.('.plant-card, .wish-card');
+    if (card && e.target === card) card.click();
+  });
+
+  // Detailansicht: Zurück, Gießen, Löschen
+  $('#detail').addEventListener('click', e => {
+    const a = e.target.closest('[data-action]')?.dataset.action;
+    const p = findPlant(state.detailId);
+    if (a === 'back') closeDetail();
+    if (a === 'water' && p) waterPlant(p);
+    if (a === 'delete' && p) deletePlant(p);
+  });
+
+  // Chat-Reiter
+  const chat = $('#panel-chat');
+  chat.addEventListener('submit', e => {
+    e.preventDefault();
+    const ta = $('textarea', chat);
+    const text = ta.value.trim();
+    if (!text || state.chat.sending) return;
+    ta.value = '';
+    autoGrow(ta);
+    sendChat(text);
+  });
+  chat.addEventListener('keydown', e => {
+    // Am PC: Enter sendet, Umschalt+Enter macht eine neue Zeile
+    if (e.target.matches('textarea') && e.key === 'Enter' && !e.shiftKey && !IS_MOBILE) {
+      e.preventDefault();
+      e.target.form.requestSubmit();
+    }
+  });
+  chat.addEventListener('input', e => { if (e.target.matches('textarea')) autoGrow(e.target); });
+  chat.addEventListener('change', e => {
+    if (!e.target.matches('.chat-plant')) return;
+    state.chat.plantId = e.target.value;
+    if (state.chat.id) updateDoc(docIn('chats', state.chat.id), { plantId: e.target.value || null }).catch(() => {});
+  });
+  chat.addEventListener('click', e => {
+    const a = e.target.closest('[data-action]')?.dataset.action;
+    if (a === 'new-chat') newChat();
+    if (a === 'open-settings') openSettings();
+  });
+}
+
+function init() {
+  $$('.icon-img').forEach(img => { img.src = window.BW_ICON; });
+  wireEvents();
+  if (!CONFIG_OK) {
+    showScreen('login');
+    $('#btnLogin').disabled = true;
+    $('#configHint').hidden = false;
+    return;
+  }
+  // Ergebnis einer Anmeldung per Weiterleitung (Handy-Fallback) abholen
+  getRedirectResult(auth).catch(showLoginError);
+  onAuthStateChanged(auth, handleAuth);
+}
+
+init();
+</script>
+
+<script>
+  // Falls die Firebase-Bibliotheken nicht geladen werden können (z. B. offline)
+  setTimeout(function () {
+    if (!window.__bwStarted) {
+      document.getElementById('loadingText').textContent =
+        'Blattwerk konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Seite neu laden.';
+    }
+  }, 12000);
+</script>
+</body>
+</html>
