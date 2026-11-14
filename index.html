@@ -664,6 +664,14 @@ select {
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
+// ╔══════════════════════════════════════════════════════════════════════╗
+// ║  FIREBASE-KONFIGURATION – HIER DEINE EIGENEN WERTE EINTRAGEN          ║
+// ║  Zu finden in der Firebase-Konsole:                                   ║
+// ║  Projekteinstellungen (Zahnrad) → „Meine Apps“ → Web-App → Konfig.    ║
+// ║  Hinweis: Diese Werte sind KEIN Geheimnis und dürfen öffentlich sein. ║
+// ║  Geschützt werden deine Daten durch die Firestore-Security-Rules.     ║
+// ║  WICHTIG: „const firebaseConfig“ darf nur EINMAL in der Datei stehen. ║
+// ╚══════════════════════════════════════════════════════════════════════╝
 const firebaseConfig = {
   apiKey: "AIzaSyAgSQsyExSEDxGIAJLZD0fC344rMPaOxmM",
   authDomain: "blattwerk-ca37f.firebaseapp.com",
@@ -672,15 +680,6 @@ const firebaseConfig = {
   messagingSenderId: "372849105108",
   appId: "1:372849105108:web:faddd9bf8a281f9c4f8341"
 };
-const firebaseConfig = {
-  apiKey: "DEIN-API-KEY",
-  authDomain: "DEIN-PROJEKT.firebaseapp.com",
-  projectId: "DEIN-PROJEKT",
-  storageBucket: "DEIN-PROJEKT.firebasestorage.app",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000"
-};
-
 // KI-Modell für den Pflanzen-Chat (Google Gemini). Bei Bedarf hier ändern.
 const GEMINI_MODEL = "gemini-3.8-flash";
 // ═══════════════════════ Ende der Konfiguration ═══════════════════════
