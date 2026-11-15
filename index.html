@@ -702,6 +702,7 @@ window.__bwStarted = true;
 //  GRUNDEINSTELLUNGEN
 // ============================================================
 const API_KEY_STORAGE = 'blattwerk.geminiKey';   // Name im localStorage
+const GEMINI_TIMEOUT_MS = 45000;                 // max. Wartezeit auf eine KI-Antwort (45 Sekunden)
 const CONFIG_OK = !String(firebaseConfig.apiKey).includes('DEIN');
 const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
   || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
@@ -738,7 +739,8 @@ const state = {
 };
 
 function freshChat() {
-  return { id: null, messages: [], plantId: '', loaded: false, loading: false, sending: false, error: '' };
+  // created = Dokument existiert schon in Firestore; controller = laufende KI-Anfrage
+  return { id: null, created: false, controller: null, messages: [], plantId: '', loaded: false, loading: false, sending: false, error: '' };
 }
 
 // ============================================================
@@ -1873,6 +1875,7 @@ async function loadLatestChat() {
       const d = snap.docs[0];
       const data = d.data();
       state.chat.id = d.id;
+      state.chat.created = true;
       state.chat.messages = Array.isArray(data.messages) ? data.messages : [];
       state.chat.plantId = data.plantId || '';
     }
@@ -1885,19 +1888,20 @@ async function loadLatestChat() {
   if (state.tab === 'chat') renderChat();
 }
 
-// Chat in Firestore speichern
-async function saveChat() {
+// Chat in Firestore speichern. Läuft im Hintergrund – die KI-Anfrage
+// wartet NICHT darauf, damit ein langsames Speichern den Chat nicht blockiert.
+function saveChat(chat) {
+  if (!chat.id) chat.id = doc(col('chats')).id;   // neue ID sofort lokal erzeugen
   const data = {
-    messages: state.chat.messages.slice(-100),
-    plantId: state.chat.plantId || null,
+    messages: chat.messages.slice(-100),
+    plantId: chat.plantId || null,
     updatedAt: serverTimestamp()
   };
-  if (state.chat.id) {
-    await updateDoc(docIn('chats', state.chat.id), data);
-  } else {
-    const ref = await addDoc(col('chats'), { ...data, createdAt: serverTimestamp() });
-    state.chat.id = ref.id;
-  }
+  if (!chat.created) { data.createdAt = serverTimestamp(); chat.created = true; }
+  setDoc(docIn('chats', chat.id), data, { merge: true }).catch(err => {
+    console.error(err);
+    toast('Chat konnte nicht gespeichert werden: ' + errText(err));
+  });
 }
 
 // Verlauf ins Gemini-Format bringen (Rollen müssen sich abwechseln)
@@ -1913,8 +1917,27 @@ function buildContents(messages) {
   return out;
 }
 
-// Anfrage an die Gemini-API (direkt per fetch)
-async function askGemini(messages, plant) {
+// Eine einzelne Anfrage an die Gemini-API (abbrechbar über signal)
+async function callGemini(body, key, signal) {
+  let res;
+  try {
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(body),
+      signal
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;             // Zeitlimit oder "Neuer Chat"
+    throw new Error('Keine Verbindung zur KI. Prüfe deine Internetverbindung.');
+  }
+  let data = {};
+  try { data = await res.json(); } catch (err) { if (signal?.aborted) throw err; }
+  return { res, data };
+}
+
+// Frage an die KI stellen (direkt per fetch)
+async function askGemini(messages, plant, signal) {
   const key = getApiKey();
   if (!key) throw new Error('Kein API-Schlüssel hinterlegt.');
   let system = SYSTEM_PROMPT;
@@ -1925,21 +1948,18 @@ async function askGemini(messages, plant) {
 - Gieß-Intervall: alle ${plant.intervalDays} Tage
 - Raum: ${roomName(plant.roomId) || 'ohne Raum'}`;
   }
-  let res;
-  try {
-    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(GEMINI_MODEL)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: buildContents(messages)
-      })
-    });
-  } catch {
-    throw new Error('Keine Verbindung zur KI. Prüfe deine Internetverbindung.');
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: buildContents(messages),
+    // Wenig "Nachdenken" = deutlich schnellere Antworten
+    generationConfig: { thinkingConfig: { thinkingLevel: 'low' } }
+  };
+  let { res, data } = await callGemini(body, key, signal);
+  // Falls das Modell die Einstellung nicht kennt: ohne sie noch einmal versuchen
+  if (res.status === 400 && /thinking/i.test(data?.error?.message || '')) {
+    delete body.generationConfig;
+    ({ res, data } = await callGemini(body, key, signal));
   }
-  let data = {};
-  try { data = await res.json(); } catch { /* leere Antwort */ }
   if (!res.ok) {
     const m = data?.error?.message || '';
     if (res.status === 400 && /api.?key/i.test(m)) throw new Error('Der API-Schlüssel ist ungültig. Prüfe ihn in den Einstellungen (Zahnrad).');
@@ -1956,26 +1976,39 @@ async function askGemini(messages, plant) {
 }
 
 async function sendChat(text) {
-  if (state.chat.sending) return;
-  state.chat.error = '';
-  state.chat.messages.push({ role: 'user', text });
-  state.chat.sending = true;
+  const chat = state.chat;            // dieser Chat (falls inzwischen "Neuer Chat" gedrückt wird)
+  if (chat.sending) return;
+  chat.error = '';
+  chat.messages.push({ role: 'user', text });
+  chat.sending = true;
   renderChatMessages();
-  try { await saveChat(); } catch (err) { console.error(err); toast('Chat konnte nicht gespeichert werden.'); }
+  saveChat(chat);
+
+  // Zeitlimit: Nach GEMINI_TIMEOUT_MS wird die Anfrage abgebrochen
+  const controller = new AbortController();
+  chat.controller = controller;
+  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
   try {
-    const reply = await askGemini(state.chat.messages, findPlant(state.chat.plantId));
-    state.chat.messages.push({ role: 'model', text: reply });
-    try { await saveChat(); } catch (err) { console.error(err); }
+    const reply = await askGemini(chat.messages, findPlant(chat.plantId), controller.signal);
+    if (state.chat !== chat) return;  // Chat wurde inzwischen gewechselt
+    chat.messages.push({ role: 'model', text: reply });
+    saveChat(chat);
   } catch (err) {
-    state.chat.error = err.message;
+    if (state.chat !== chat) return;
+    chat.error = controller.signal.aborted
+      ? `Die KI hat nach ${GEMINI_TIMEOUT_MS / 1000} Sekunden nicht geantwortet. Bitte versuch es noch einmal.`
+      : err.message;
   } finally {
-    state.chat.sending = false;
-    renderChatMessages();
+    clearTimeout(timer);
+    chat.sending = false;
+    chat.controller = null;
+    if (state.chat === chat) renderChatMessages();
   }
 }
 
+// "Neuer Chat" geht immer – eine laufende Anfrage wird dabei abgebrochen
 function newChat() {
-  if (state.chat.sending) return;
+  state.chat.controller?.abort();
   state.chat = { ...freshChat(), loaded: true };
   renderChat(true);
 }
