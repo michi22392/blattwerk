@@ -1,0 +1,16 @@
+{
+  "name": "blattwerk-erinnerungen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sendet tägliche Gieß-Erinnerungen für Blattwerk über Firebase Cloud Messaging (läuft in GitHub Actions)",
+  "main": "send-reminders.js",
+  "scripts": {
+    "start": "node send-reminders.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.1"
+  }
+}

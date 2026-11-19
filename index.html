@@ -12,15 +12,18 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Blattwerk">
+<!-- Web-App-Manifest als eigene Datei (iOS braucht es für Push-Benachrichtigungen) -->
+<link rel="manifest" href="manifest.json">
 
 <script>
 /* =====================================================================
-   APP-ICON (SVG) + WEB-APP-MANIFEST
+   APP-ICON (SVG)
    Das Icon ist ein ausgewachsenes, panaschiertes Monstera-deliciosa-Blatt
    (tiefe Einschnitte, ovale Löcher an der Mittelrippe). Es wird als Favicon,
-   im Manifest, als apple-touch-icon und im Kopfbereich verwendet.
-   iOS und Android akzeptieren für Startbildschirm-Icons kein SVG – deshalb
-   wird das SVG beim Start zusätzlich in PNG-Bilder umgewandelt.
+   als apple-touch-icon und im Kopfbereich verwendet. Die PNG-Icons im
+   Manifest (icons/icon-192.png, icons/icon-512.png) zeigen dasselbe Blatt.
+   iOS akzeptiert für das Startbildschirm-Icon kein SVG – deshalb wird das
+   SVG beim Start zusätzlich in ein PNG umgewandelt.
    ===================================================================== */
 (function () {
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -57,7 +60,7 @@
   // Favicon (SVG)
   addLink('icon', svgUrl, 'image/svg+xml');
 
-  // SVG per Canvas in PNG umwandeln (für iOS-Startbildschirm und Android)
+  // SVG per Canvas in PNG umwandeln (für den iOS-Startbildschirm)
   function toPng(size) {
     return new Promise(resolve => {
       const img = new Image();
@@ -74,35 +77,7 @@
     });
   }
 
-  Promise.all([toPng(180), toPng(192), toPng(512)]).then(([p180, p192, p512]) => {
-    if (p180) addLink('apple-touch-icon', p180);
-
-    // Web-App-Manifest als Data-URL (Adressen müssen absolut sein)
-    const startUrl = location.href.split('#')[0].split('?')[0];
-    const scope = location.origin + location.pathname.replace(/[^/]*$/, '');
-    const icons = [];
-    if (p192) icons.push({ src: p192, sizes: '192x192', type: 'image/png', purpose: 'any' });
-    if (p512) {
-      icons.push({ src: p512, sizes: '512x512', type: 'image/png', purpose: 'any' });
-      icons.push({ src: p512, sizes: '512x512', type: 'image/png', purpose: 'maskable' });
-    }
-    icons.push({ src: svgUrl, sizes: 'any', type: 'image/svg+xml' });
-
-    const manifest = {
-      name: 'Blattwerk – Pflanzenpflege',
-      short_name: 'Blattwerk',
-      description: 'Gießplan, Wunschliste und Pflanzen-Chat',
-      lang: 'de',
-      start_url: startUrl,
-      scope: scope,
-      display: 'standalone',
-      orientation: 'portrait',
-      background_color: '#f5f0e3',
-      theme_color: '#2f7d3c',
-      icons: icons
-    };
-    addLink('manifest', 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest)));
-  });
+  toPng(180).then(p180 => { if (p180) addLink('apple-touch-icon', p180); });
 
   // Icon in alle <img class="icon-img"> einsetzen, sobald die Seite geladen ist
   document.addEventListener('DOMContentLoaded', () => {
@@ -418,6 +393,38 @@ select {
 .form-error, .error-text { color: var(--red); font-size: .92rem; font-weight: 600; }
 .sep { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
 
+/* Einstellungen: Benachrichtigungen */
+.settings-title { font-size: 1.05rem; margin-bottom: 12px; }
+.notify-body { display: flex; flex-direction: column; gap: 14px; }
+.switch-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  background: var(--surface); border-radius: var(--radius-sm); padding: 12px 14px; box-shadow: var(--shadow);
+}
+.switch-label { font-weight: 700; }
+.switch {
+  position: relative; width: 56px; height: 32px; flex-shrink: 0; border-radius: 999px;
+  background: var(--surface-2); border: 1.5px solid var(--line); transition: background .2s, border-color .2s;
+}
+.switch span {
+  position: absolute; top: 2px; left: 2px; width: 25px; height: 25px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .25); transition: transform .2s;
+}
+.switch[aria-checked="true"] { background: var(--green); border-color: var(--green); }
+.switch[aria-checked="true"] span { transform: translateX(24px); }
+.switch:disabled { opacity: .6; }
+.ios-steps { display: flex; flex-direction: column; gap: 10px; }
+.ios-step {
+  display: flex; align-items: center; gap: 12px; background: var(--surface);
+  border-radius: var(--radius-sm); padding: 10px 12px; box-shadow: var(--shadow);
+}
+.ios-step-icon {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center; color: #0a84ff;
+}
+.ios-step-icon svg { width: 26px; height: 26px; }
+.ios-step-icon img { width: 44px; height: 44px; border-radius: 12px; }
+.steps-list { padding-left: 22px; display: flex; flex-direction: column; gap: 4px; font-size: .92rem; }
+
 /* Foto-Auswahl */
 .photo-field { display: flex; flex-direction: column; gap: 10px; }
 .photo-preview {
@@ -672,6 +679,10 @@ const firebaseConfig = {
 };
 // KI-Modell für den Pflanzen-Chat (Google Gemini). Bei Bedarf hier ändern.
 const GEMINI_MODEL = "gemini-3.6-flash";
+// VAPID-Schlüssel für Push-Benachrichtigungen (Gieß-Erinnerungen).
+// Firebase-Konsole → Projekteinstellungen → Cloud Messaging → Web-Konfiguration →
+// "Web-Push-Zertifikate" → Schlüsselpaar. Den langen Schlüssel hier eintragen.
+const VAPID_KEY = "BBrlu8BJ3O_UqaMunX2qKzophaTaXn28akbznkk3Gs4PxckvrgbyYd-TnDuqh68y_g_tqhrtkQVeVV4lzNnX8_0";
 // ═══════════════════════ Ende der Konfiguration ═══════════════════════
 
 
@@ -685,6 +696,9 @@ import {
   getFirestore, doc, collection, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, limit, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+  getMessaging, getToken, deleteToken, isSupported as messagingSupported
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js';
 
 window.__bwStarted = true;
 
@@ -707,10 +721,11 @@ Bei Fragen, die nichts mit Pflanzen zu tun haben, lenke freundlich zum Thema Pfl
 // Firebase starten (nur wenn die Konfiguration eingetragen ist)
 let auth = null;
 let db = null;
+let fbApp = null;
 if (CONFIG_OK) {
-  const app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
+  fbApp = initializeApp(firebaseConfig);
+  auth = getAuth(fbApp);
+  db = getFirestore(fbApp);
 }
 
 // Zentraler Zustand der App
@@ -1120,6 +1135,7 @@ function greetAndStart() {
   $('#greetText').textContent = `Hallo ${state.profile.name} 🌿`;
   showScreen('greet');
   startListeners();
+  initPush();                          // Push-Token still prüfen/erneuern (fragt nichts ab)
   greetTimer = setTimeout(() => {
     showScreen('main');
     switchTab('plants');
@@ -2128,6 +2144,260 @@ function autoGrow(ta) {
 }
 
 // ============================================================
+//  PUSH-BENACHRICHTIGUNGEN (Gieß-Erinnerungen)
+//  Versand: GitHub Actions (scripts/send-reminders.js) über Firebase Cloud Messaging.
+//  Empfang/Anzeige: Service Worker firebase-messaging-sw.js
+// ============================================================
+const PUSH_STORAGE = 'blattwerk.push';            // { uid, token } dieses Geräts (localStorage)
+const VAPID_OK = !String(VAPID_KEY).includes('DEIN');
+const DEFAULT_REMINDER_TIME = '08:00';
+const REMINDER_TIMES = Array.from({ length: 17 }, (_, i) => `${pad(i + 6)}:00`);   // 06:00 … 22:00
+
+const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+// Läuft die App als Home-Bildschirm-App (nicht im Safari-Tab)?
+const isStandalone = () => window.navigator.standalone === true
+  || window.matchMedia('(display-mode: standalone)').matches;
+function timeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Berlin'; } catch { return 'Europe/Berlin'; }
+}
+function deviceName() {
+  const ua = navigator.userAgent;
+  if (/iPhone/i.test(ua)) return 'iPhone';
+  if (/iPad/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua))) return 'iPad';
+  if (/Android/i.test(ua)) return 'Android';
+  if (/Macintosh/i.test(ua)) return 'Mac';
+  if (/Windows/i.test(ua)) return 'Windows-PC';
+  if (/Linux/i.test(ua)) return 'Linux-PC';
+  return 'Browser';
+}
+
+function getStoredPush() {
+  try { return JSON.parse(localStorage.getItem(PUSH_STORAGE) || 'null'); } catch { return null; }
+}
+function setStoredPush(value) {
+  try {
+    if (value) localStorage.setItem(PUSH_STORAGE, JSON.stringify(value));
+    else localStorage.removeItem(PUSH_STORAGE);
+  } catch { /* privater Modus o. Ä. */ }
+}
+// Sind die Erinnerungen auf DIESEM Gerät für DIESEN Nutzer an?
+function pushOnHere() {
+  const s = getStoredPush();
+  return !!(s && s.token && state.user && s.uid === state.user.uid)
+    && 'Notification' in window && Notification.permission === 'granted';
+}
+
+// Service Worker registrieren (Datei liegt neben index.html)
+let swRegPromise = null;
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return Promise.reject(new Error('Dieser Browser unterstützt keine Service Worker.'));
+  if (!swRegPromise) {
+    swRegPromise = navigator.serviceWorker.register('firebase-messaging-sw.js')
+      .then(() => navigator.serviceWorker.ready)
+      .catch(err => { swRegPromise = null; throw err; });
+  }
+  return swRegPromise;
+}
+
+// Was soll der Bereich "Benachrichtigungen" zeigen?
+async function pushStatus() {
+  if (isIOS() && !isStandalone()) return 'ios-browser';
+  let supported = 'Notification' in window && 'serviceWorker' in navigator;
+  if (supported) { try { supported = await messagingSupported(); } catch { supported = false; } }
+  if (!supported) return isIOS() ? 'ios-old' : 'unsupported';
+  if (!VAPID_OK) return 'no-vapid';
+  if (Notification.permission === 'denied') return 'denied';
+  return 'ready';
+}
+
+// FCM-Token mit dem VAPID-Schlüssel holen (nur bei erteilter Erlaubnis aufrufen)
+async function fetchFcmToken() {
+  const reg = await registerSW();
+  return getToken(getMessaging(fbApp), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+}
+
+// Gerät speichern: users/{uid}/devices/{token}
+async function saveDevice(token) {
+  const ref = docIn('devices', token);
+  const snap = await getDoc(ref);
+  const data = { token, name: deviceName(), timeZone: timeZone() };
+  if (!snap.exists()) data.createdAt = serverTimestamp();
+  await setDoc(ref, data, { merge: true });
+}
+
+// Erinnerungen einschalten – MUSS direkt aus dem Antippen heraus aufgerufen werden,
+// weil iOS die Erlaubnis-Abfrage nur nach einer Nutzeraktion zulässt
+async function enableReminders() {
+  const permission = await Notification.requestPermission();   // erste Aktion, kein await davor!
+  if (permission !== 'granted') {
+    toast('Ohne Erlaubnis kann Blattwerk keine Erinnerungen schicken.');
+    return false;
+  }
+  const token = await fetchFcmToken();
+  if (!token) throw new Error('Kein Push-Token erhalten.');
+  await saveDevice(token);
+  const reminderTime = state.profile?.reminderTime || DEFAULT_REMINDER_TIME;
+  const tz = timeZone();
+  await setDoc(userDoc(), { remindersEnabled: true, reminderTime, timeZone: tz }, { merge: true });
+  Object.assign(state.profile, { remindersEnabled: true, reminderTime, timeZone: tz });
+  setStoredPush({ uid: state.user.uid, token });
+  return true;
+}
+
+// Erinnerungen auf diesem Gerät ausschalten: Token aus Firestore löschen
+async function disableReminders() {
+  const stored = getStoredPush();
+  setStoredPush(null);
+  if (stored?.token && stored.uid === state.user.uid) {
+    try { await deleteDoc(docIn('devices', stored.token)); } catch (err) { console.error(err); }
+  }
+  // Token auch bei Firebase abmelden (nur möglich, solange die Erlaubnis besteht)
+  if ('Notification' in window && Notification.permission === 'granted' && VAPID_OK) {
+    try {
+      const messaging = getMessaging(fbApp);
+      await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: await registerSW() });
+      await deleteToken(messaging);
+    } catch (err) { console.warn('Token konnte nicht abgemeldet werden:', err); }
+  }
+  // Kein Gerät mehr übrig? Dann Erinnerungen im Profil ausschalten
+  const rest = await getDocs(col('devices'));
+  if (rest.empty) {
+    await setDoc(userDoc(), { remindersEnabled: false }, { merge: true });
+    if (state.profile) state.profile.remindersEnabled = false;
+  }
+}
+
+// Beim App-Start (ohne Nachfrage): Token prüfen und ggf. erneuern
+async function initPush() {
+  const stored = getStoredPush();
+  if (!stored || !state.user || stored.uid !== state.user.uid || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') {
+    // Erlaubnis wurde in den Einstellungen entzogen → Gerät austragen
+    setStoredPush(null);
+    try { await deleteDoc(docIn('devices', stored.token)); } catch { /* egal */ }
+    return;
+  }
+  try {
+    if (!VAPID_OK || !(await messagingSupported())) return;
+    const token = await fetchFcmToken();
+    if (!token) return;
+    if (token !== stored.token) {
+      try { await deleteDoc(docIn('devices', stored.token)); } catch { /* egal */ }
+    }
+    await saveDevice(token);
+    setStoredPush({ uid: state.user.uid, token });
+  } catch (err) {
+    console.warn('Push-Token konnte nicht erneuert werden:', err);
+  }
+}
+
+// Lokale Test-Benachrichtigung über den Service Worker
+async function sendTestNotification() {
+  const reg = await registerSW();
+  await reg.showNotification('🌿 Test von Blattwerk', {
+    body: 'So sehen deine Gieß-Erinnerungen aus. Es klappt! 🎉',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: 'blattwerk-test'
+  });
+}
+
+// Bebilderte Anleitung für Safari (iPhone, nicht als Home-Bildschirm-App geöffnet)
+function iosInstallHTML() {
+  return `
+    <p class="hint">Auf dem iPhone funktionieren Benachrichtigungen nur, wenn Blattwerk als App auf dem Home-Bildschirm liegt:</p>
+    <div class="ios-steps">
+      <div class="ios-step">
+        <div class="ios-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 7 4-4 4 4"/><path d="M8 11H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2"/></svg></div>
+        <div><b>1.</b> In Safari auf das <b>Teilen-Symbol</b> tippen</div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <div><b>2.</b> <b>„Zum Home-Bildschirm“</b> wählen und hinzufügen</div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-icon"><img src="${window.BW_ICON}" alt=""></div>
+        <div><b>3.</b> Blattwerk über das neue <b>App-Symbol</b> öffnen und hier die Erinnerungen einschalten</div>
+      </div>
+    </div>`;
+}
+
+function deniedHTML() {
+  return isIOS()
+    ? `<p class="hint">🔕 Benachrichtigungen sind für Blattwerk ausgeschaltet. So schaltest du sie wieder ein:</p>
+       <ol class="steps-list">
+         <li>iPhone-<b>Einstellungen</b> öffnen</li>
+         <li><b>Mitteilungen</b> → <b>Blattwerk</b></li>
+         <li><b>„Mitteilungen erlauben“</b> einschalten</li>
+         <li>Blattwerk schließen, neu öffnen und hier die Erinnerungen einschalten</li>
+       </ol>`
+    : `<p class="hint">🔕 Benachrichtigungen sind für diese Seite blockiert. Erlaube sie in den Website-Einstellungen
+       deines Browsers (Symbol links neben der Adresse) und lade die Seite neu.</p>`;
+}
+
+// Bereich "Benachrichtigungen" in den Einstellungen aufbauen
+async function renderNotifySection(box) {
+  const status = await pushStatus();
+  if (!box.isConnected) return;
+  if (status === 'ios-browser') { box.innerHTML = iosInstallHTML(); return; }
+  if (status === 'ios-old') { box.innerHTML = '<p class="hint">Benachrichtigungen brauchen iOS 16.4 oder neuer. Bitte aktualisiere dein iPhone (Einstellungen → Allgemein → Softwareupdate).</p>'; return; }
+  if (status === 'unsupported') { box.innerHTML = '<p class="hint">Dieser Browser unterstützt keine Push-Benachrichtigungen.</p>'; return; }
+  if (status === 'no-vapid') { box.innerHTML = '<p class="hint">⚙️ Der VAPID-Schlüssel fehlt noch. Trage ihn oben in index.html bei <b>VAPID_KEY</b> ein (siehe Anleitung).</p>'; return; }
+  if (status === 'denied') { box.innerHTML = deniedHTML(); return; }
+
+  const on = pushOnHere();
+  const time = state.profile?.reminderTime || DEFAULT_REMINDER_TIME;
+  box.innerHTML = `
+    <div class="switch-row">
+      <div>
+        <div class="switch-label">Gieß-Erinnerungen</div>
+        <div class="hint">Täglich eine Nachricht, wenn Pflanzen Wasser brauchen</div>
+      </div>
+      <button type="button" class="switch" role="switch" aria-checked="${on}" aria-label="Gieß-Erinnerungen an/aus"><span></span></button>
+    </div>
+    <label class="field"><span>Uhrzeit der Erinnerung</span>
+      <select name="reminderTime" ${on ? '' : 'disabled'}>
+        ${REMINDER_TIMES.map(t => `<option value="${t}" ${t === time ? 'selected' : ''}>${t} Uhr</option>`).join('')}
+      </select></label>
+    <button type="button" class="btn btn-soft btn-block" data-action="test-push" ${on ? '' : 'disabled'}>🔔 Test-Benachrichtigung</button>`;
+
+  const toggle = $('.switch', box);
+  toggle.addEventListener('click', async () => {
+    if (toggle.disabled) return;
+    const turnOn = toggle.getAttribute('aria-checked') !== 'true';
+    toggle.disabled = true;
+    toggle.setAttribute('aria-checked', String(turnOn));
+    try {
+      if (turnOn) {
+        if (await enableReminders()) toast(`Gieß-Erinnerungen sind an 🔔 (täglich ${state.profile.reminderTime} Uhr)`);
+      } else {
+        await disableReminders();
+        toast('Gieß-Erinnerungen sind aus');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Das hat nicht geklappt: ' + errText(err));
+    }
+    renderNotifySection(box);
+  });
+
+  $('select', box).addEventListener('change', async e => {
+    const reminderTime = e.target.value;
+    try {
+      await setDoc(userDoc(), { reminderTime, timeZone: timeZone() }, { merge: true });
+      state.profile.reminderTime = reminderTime;
+      toast(`Erinnerung täglich um ${reminderTime} Uhr`);
+    } catch (err) { toast('Speichern fehlgeschlagen: ' + errText(err)); }
+  });
+
+  $('[data-action="test-push"]', box).addEventListener('click', async () => {
+    try { await sendTestNotification(); }
+    catch (err) { toast('Test fehlgeschlagen: ' + errText(err)); }
+  });
+}
+
+// ============================================================
 //  EINSTELLUNGEN (Zahnrad oben rechts)
 // ============================================================
 function openSettings() {
@@ -2146,8 +2416,14 @@ function openSettings() {
         <button type="submit" class="btn btn-primary btn-block">Speichern</button>
       </form>
       <hr class="sep">
+      <section>
+        <h3 class="settings-title">🔔 Benachrichtigungen</h3>
+        <div class="notify-body">${loadingHTML('Wird geprüft …', true)}</div>
+      </section>
+      <hr class="sep">
       <button type="button" class="btn btn-danger-soft btn-block" data-action="logout">Abmelden</button>`
   });
+  renderNotifySection($('.notify-body', el));
   const form = $('form', el);
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -2297,6 +2573,17 @@ function wireEvents() {
     if (a === 'new-chat') newChat();
     if (a === 'open-settings') openSettings();
   });
+
+  // Benachrichtigung angetippt, App war schon offen: Reiter "Pflanzen" zeigen
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type !== 'blattwerk-show-tab') return;
+      closeSheet();
+      closeDetail();
+      if ($('#screen-main').classList.contains('active')) switchTab('plants');
+    });
+    navigator.serviceWorker.startMessages?.();
+  }
 }
 
 function init() {
