@@ -16,7 +16,8 @@
 <script>
 /* =====================================================================
    APP-ICON (SVG) + WEB-APP-MANIFEST
-   Das Icon ist ein panaschiertes Monstera-Blatt. Es wird als Favicon,
+   Das Icon ist ein ausgewachsenes, panaschiertes Monstera-deliciosa-Blatt
+   (tiefe Einschnitte, ovale Löcher an der Mittelrippe). Es wird als Favicon,
    im Manifest, als apple-touch-icon und im Kopfbereich verwendet.
    iOS und Android akzeptieren für Startbildschirm-Icons kein SVG – deshalb
    wird das SVG beim Start zusätzlich in PNG-Bilder umgewandelt.
@@ -25,45 +26,18 @@
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
 <defs>
 <mask id="m" maskUnits="userSpaceOnUse" x="-256" y="-256" width="1024" height="1024">
-<path fill="#fff" d="M256 70C340 75 430 150 432 255C434 345 370 410 300 405C280 404 264 392 256 372C248 392 232 404 212 405C142 410 78 345 80 255C82 150 172 75 256 70Z"/>
-<g fill="#000">
-<path d="M296 165Q350 128 404 100L410 118Q352 145 296 165Z"/>
-<path d="M304 228Q375 195 448 168L452 188Q378 213 304 228Z"/>
-<path d="M304 292Q380 270 456 252L456 272Q380 286 304 292Z"/>
-<path d="M294 348Q360 340 440 330L436 350Q362 356 294 348Z"/>
-<path d="M216 165Q162 128 108 100L102 118Q160 145 216 165Z"/>
-<path d="M208 228Q137 195 64 168L60 188Q134 213 208 228Z"/>
-<path d="M208 292Q132 270 56 252L56 272Q132 286 208 292Z"/>
-<path d="M218 348Q152 340 72 330L76 350Q150 356 218 348Z"/>
-<ellipse cx="282" cy="198" rx="6" ry="11" transform="rotate(-35 282 198)"/>
-<ellipse cx="288" cy="262" rx="6" ry="12" transform="rotate(-25 288 262)"/>
-<ellipse cx="280" cy="322" rx="5" ry="10" transform="rotate(-12 280 322)"/>
-<ellipse cx="230" cy="198" rx="6" ry="11" transform="rotate(35 230 198)"/>
-<ellipse cx="224" cy="262" rx="6" ry="12" transform="rotate(25 224 262)"/>
-<ellipse cx="232" cy="322" rx="5" ry="10" transform="rotate(12 232 322)"/>
-</g>
+<path fill="#fff" d="M256 30C318 50 448 104 454 218C460 324 406 422 324 432C290 436 266 412 256 374C246 412 222 436 188 432C106 422 52 324 58 218C64 104 194 50 256 30Z"/>
+<g fill="#000"><path d="M276.9 113.7Q395.7 18.8 490.6 -97.6L460.9 -124.3Q378.9 3.7 273.1 110.3Z"/><path d="M235.1 113.7Q140.1 -2.6 21.4 -97.6L51.1 -124.3Q156.9 -17.7 238.9 110.3Z"/><path d="M276.5 164.1Q413.5 98.3 532.2 6.3L509.3 -26.5Q400.6 79.8 273.5 159.9Z"/><path d="M235.5 164.1Q116.8 72.1 -20.2 6.3L2.7 -26.5Q129.8 53.6 238.5 159.9Z"/><path d="M275.9 214.4Q424.8 183.7 562.2 123.2L547.9 85.8Q416.7 162.6 274.1 209.6Z"/><path d="M236.1 214.4Q98.6 153.9 -50.2 123.2L-35.9 85.8Q106.7 132.8 237.9 209.6Z"/><path d="M275.2 264.6Q426.8 276.1 575.6 255.8L572.1 215.9Q424.8 253.6 274.8 259.4Z"/><path d="M236.8 264.6Q88 244.2 -63.6 255.8L-60.1 215.9Q90 221.7 237.2 259.4Z"/><path d="M274.3 310.5Q412.8 373.2 559.6 405L570 366.3Q418.7 351.4 275.7 305.5Z"/><path d="M237.7 310.5Q90.9 342.3 -47.6 405L-58 366.3Q85 320.5 236.3 305.5Z"/><path d="M273.5 350.1Q380.3 458.3 505.9 540.5L529.5 508.2Q393.6 440 276.5 345.9Z"/><path d="M238.5 350.1Q112.9 432.4 6.1 540.5L-17.5 508.2Q99.6 414.1 235.5 345.9Z"/><ellipse cx="309.5" cy="102.5" rx="13" ry="6.5" transform="rotate(-41.5 309.5 102.5)"/><ellipse cx="315.6" cy="161.4" rx="13" ry="6.5" transform="rotate(-28 315.6 161.4)"/><ellipse cx="379.2" cy="127.6" rx="10" ry="5" transform="rotate(-28 379.2 127.6)"/><ellipse cx="319.8" cy="222.7" rx="13" ry="6.5" transform="rotate(-13 319.8 222.7)"/><ellipse cx="390" cy="206.5" rx="10" ry="5" transform="rotate(-13 390 206.5)"/><ellipse cx="320.8" cy="285" rx="13" ry="6.5" transform="rotate(5 320.8 285)"/><ellipse cx="392.6" cy="291.3" rx="10" ry="5" transform="rotate(5 392.6 291.3)"/><ellipse cx="316.5" cy="343.8" rx="13" ry="6.5" transform="rotate(25.5 316.5 343.8)"/><ellipse cx="202.5" cy="102.5" rx="13" ry="6.5" transform="rotate(41.5 202.5 102.5)"/><ellipse cx="196.4" cy="161.4" rx="13" ry="6.5" transform="rotate(28 196.4 161.4)"/><ellipse cx="132.8" cy="127.6" rx="10" ry="5" transform="rotate(28 132.8 127.6)"/><ellipse cx="192.2" cy="222.7" rx="13" ry="6.5" transform="rotate(13 192.2 222.7)"/><ellipse cx="122" cy="206.5" rx="10" ry="5" transform="rotate(13 122 206.5)"/><ellipse cx="191.2" cy="285" rx="13" ry="6.5" transform="rotate(-5 191.2 285)"/><ellipse cx="119.4" cy="291.3" rx="10" ry="5" transform="rotate(-5 119.4 291.3)"/><ellipse cx="195.5" cy="343.8" rx="13" ry="6.5" transform="rotate(-25.5 195.5 343.8)"/></g>
 </mask>
 </defs>
-<rect width="512" height="512" fill="#D3EAC8"/>
-<g transform="translate(256 252) rotate(16) scale(.8) translate(-256 -275)">
-<path d="M256 370C259 410 263 445 272 492" fill="none" stroke="#3C8C49" stroke-width="13" stroke-linecap="round"/>
+<rect width="512" height="512" fill="#D6ECCB"/>
+<g transform="translate(256 258) rotate(16) scale(.9) translate(-256 -262)">
+<path d="M256 356C258 400 260 440 266 480" fill="none" stroke="#3B8D49" stroke-width="17" stroke-linecap="round"/>
 <g mask="url(#m)">
-<rect x="40" y="40" width="440" height="400" fill="#2E8540"/>
-<path fill="#F4EFD9" d="M256 268C228 286 196 276 168 296C140 316 108 306 70 318L60 430L256 430Z"/>
-<path fill="#F4EFD9" d="M258 96C292 112 318 140 330 176C312 168 290 150 260 142Z"/>
-<g fill="#F4EFD9">
-<circle cx="330" cy="122" r="5"/><circle cx="362" cy="168" r="4"/><circle cx="398" cy="214" r="6"/>
-<circle cx="342" cy="240" r="3.5"/><circle cx="384" cy="302" r="5"/><circle cx="412" cy="276" r="3"/>
-<circle cx="334" cy="330" r="6"/><circle cx="306" cy="384" r="4"/><circle cx="362" cy="372" r="3.5"/>
-<circle cx="218" cy="138" r="5"/><circle cx="178" cy="182" r="4"/><circle cx="148" cy="232" r="6"/>
-<circle cx="198" cy="244" r="3"/><circle cx="118" cy="258" r="4"/><circle cx="190" cy="118" r="3.5"/>
-<circle cx="306" cy="200" r="4"/><circle cx="214" cy="204" r="3"/><circle cx="398" cy="250" r="3.5"/>
-<circle cx="352" cy="282" r="7"/><circle cx="160" cy="150" r="3"/>
-</g>
-<g fill="#2E8540">
-<circle cx="150" cy="360" r="5"/><circle cx="200" cy="332" r="4"/><circle cx="112" cy="340" r="3.5"/><circle cx="228" cy="392" r="3"/>
-</g>
-<path d="M256 372Q250 232 258 92" fill="none" stroke="#86C285" stroke-width="7" stroke-linecap="round"/>
+<rect x="0" y="0" width="512" height="512" fill="#2E8540"/>
+<g fill="#F5F0DC"><path d="M256 166C200 150 120 122 30 98L0 98L0 248L40 250C120 246 200 236 256 230Z"/><path d="M256 322C300 316 360 330 520 316L520 372C420 382 340 374 256 352Z"/><path d="M258 62C290 76 326 98 348 128C322 118 294 104 262 98Z"/><circle cx="70" cy="373.9" r="3.8"/><circle cx="150" cy="310.7" r="4.9"/><circle cx="195.1" cy="318.2" r="5.9"/><circle cx="276.3" cy="295.9" r="5.4"/><circle cx="380.4" cy="149.9" r="4.2"/><circle cx="339" cy="300.4" r="2.7"/><circle cx="329.9" cy="224.4" r="6.7"/><circle cx="376.8" cy="110.5" r="4.8"/><circle cx="420.8" cy="297.2" r="5.4"/><circle cx="289.4" cy="371" r="6.6"/><circle cx="211.5" cy="180.7" r="6.3"/><circle cx="196.3" cy="120.3" r="3.8"/><circle cx="232.8" cy="167.3" r="6.7"/><circle cx="281.8" cy="310.7" r="6.5"/><circle cx="92.3" cy="160.3" r="5"/><circle cx="263.3" cy="209.1" r="3.4"/><circle cx="415.4" cy="88.1" r="4.1"/><circle cx="200.8" cy="289.3" r="6.7"/><circle cx="265.6" cy="124.6" r="4.3"/><circle cx="177.8" cy="190.3" r="4.4"/><circle cx="196.4" cy="245.4" r="5.3"/><circle cx="158.6" cy="369.1" r="4.6"/><circle cx="397.9" cy="279.6" r="5.4"/><circle cx="266.2" cy="236.6" r="5.6"/><circle cx="427" cy="200.9" r="5.7"/><circle cx="165.4" cy="263.7" r="4.1"/><circle cx="195.6" cy="199.2" r="6.1"/><circle cx="403.5" cy="106.7" r="6.2"/><circle cx="99.5" cy="204.2" r="3.2"/><circle cx="99.6" cy="398.7" r="3.5"/><circle cx="310.3" cy="117.6" r="4.6"/><circle cx="295.3" cy="115.5" r="6.6"/><circle cx="406.1" cy="363.9" r="6.5"/><circle cx="414.9" cy="321.2" r="3.7"/><circle cx="74" cy="151.9" r="2.8"/><circle cx="70.6" cy="273.6" r="3.5"/><circle cx="351.6" cy="231.5" r="5.6"/><circle cx="160.5" cy="361.1" r="3.6"/><circle cx="212.1" cy="365.1" r="3"/><circle cx="255.9" cy="71" r="6.6"/><circle cx="312" cy="374.3" r="2.6"/><circle cx="412" cy="132.1" r="6.9"/><circle cx="284.8" cy="294.2" r="3.7"/><circle cx="154.7" cy="138.9" r="5"/><circle cx="89.9" cy="323.9" r="5.7"/><circle cx="341.3" cy="234.4" r="2.6"/></g>
+<g fill="#2E8540"><circle cx="120" cy="180" r="5"/><circle cx="160" cy="205" r="3.5"/><circle cx="90" cy="150" r="3"/><circle cx="200" cy="190" r="4"/><circle cx="380" cy="360" r="4"/><circle cx="420" cy="330" r="3"/><circle cx="330" cy="395" r="3.5"/></g>
+<path d="M256 362Q262 212 254 62" fill="none" stroke="#9FD493" stroke-width="9" stroke-linecap="round"/>
 </g>
 </g>
 </svg>`;
@@ -350,11 +324,12 @@ h1, h2, h3 { line-height: 1.25; }
    REITER 1: PFLANZEN
    ===================================================================== */
 .summary {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; flex-direction: column; gap: 2px;
   background: var(--green-soft); color: var(--green-strong);
   border-radius: var(--radius); padding: 14px 16px; font-weight: 700; margin-top: 4px;
 }
 .summary.attention { background: var(--orange-soft); color: var(--orange); }
+.summary-total { font-size: 1.35rem; font-weight: 800; color: var(--text); }
 .toolbar { display: flex; justify-content: flex-end; margin-top: 10px; }
 .room-title { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; font-weight: 700; margin: 18px 4px 10px; }
 .room-count { font-size: .78rem; font-weight: 700; background: var(--surface-2); color: var(--text-2); border-radius: 999px; padding: 1px 9px; }
@@ -415,6 +390,8 @@ h1, h2, h3 { line-height: 1.25; }
 .history li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .history li:last-child { border-bottom: 0; }
 .history .h-date { margin-left: auto; color: var(--text-2); font-size: .88rem; }
+.history .h-del { margin-right: -8px; font-size: 1rem; }
+.history li > span:first-child, .history .h-date { white-space: nowrap; }
 
 /* =====================================================================
    FORMULARE
@@ -519,6 +496,18 @@ select {
   opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 50;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Snackbar mit "Rückgängig"-Button (ca. 5 Sekunden) */
+.snackbar {
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 16px);
+  transform: translate(-50%, 20px); width: max-content; max-width: calc(100% - 32px);
+  display: flex; align-items: center; gap: 12px; padding: 6px 6px 6px 18px;
+  background: var(--text); color: var(--bg); border-radius: 16px;
+  font-weight: 600; font-size: .92rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; z-index: 45;
+}
+.snackbar.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.snackbar-btn { min-height: 40px; padding: 0 12px; border-radius: 10px; font-weight: 800; color: var(--green-soft); flex-shrink: 0; }
 
 /* =====================================================================
    REITER 2: PFLANZEN-CHAT
@@ -662,6 +651,7 @@ select {
 </div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="snackbar" class="snackbar" role="status" aria-live="polite"><span class="snackbar-text"></span><button class="snackbar-btn" type="button"></button></div>
 
 <script type="module">
 // ╔══════════════════════════════════════════════════════════════════════╗
@@ -786,6 +776,25 @@ function toast(msg) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// Snackbar mit Aktion (z. B. "Rückgängig"), verschwindet nach ms Millisekunden
+let snackTimer;
+function snackbar(msg, actionLabel, onAction, ms = 5000) {
+  const el = $('#snackbar');
+  $('.snackbar-text', el).textContent = msg;
+  const btn = $('.snackbar-btn', el);
+  btn.textContent = actionLabel;
+  btn.onclick = () => { hideSnackbar(); onAction(); };
+  el.classList.add('show');
+  clearTimeout(snackTimer);
+  snackTimer = setTimeout(hideSnackbar, ms);
+}
+function hideSnackbar() {
+  clearTimeout(snackTimer);
+  const el = $('#snackbar');
+  el.classList.remove('show');
+  $('.snackbar-btn', el).onclick = null;
 }
 
 // Button während des Speicherns sperren
@@ -1072,6 +1081,7 @@ async function handleAuth(user) {
   clearTimeout(greetTimer);
   closeSheet(true);
   closeDetail(true);
+  hideSnackbar();
   state.chat = freshChat();
 
   if (!user) {
@@ -1208,11 +1218,12 @@ function renderPlants() {
     return;
   }
 
-  // Zusammenfassung oben
+  // Zusammenfassung oben: Gesamtzahl + wie viele heute Wasser brauchen
+  const total = state.plants.length;
   const need = state.plants.filter(p => daysUntilWater(p) <= 0).length;
   const summary = need === 0
     ? '✨ Alles versorgt – heute braucht keine Pflanze Wasser'
-    : `💧 ${need === 1 ? '1 Pflanze braucht' : need + ' Pflanzen brauchen'} heute Wasser`;
+    : `💧 ${need === 1 ? '1 braucht' : need + ' brauchen'} heute Wasser`;
 
   // Nach Räumen gruppieren (in der festgelegten Reihenfolge)
   const roomIds = new Set(state.rooms.map(r => r.id));
@@ -1223,7 +1234,10 @@ function renderPlants() {
   if (noRoom.length) groups.push({ title: 'Ohne Raum', plants: noRoom });
 
   el.innerHTML = `
-    <div class="summary ${need ? 'attention' : ''}">${esc(summary)}</div>
+    <div class="summary ${need ? 'attention' : ''}">
+      <div class="summary-total">🌿 ${plural(total, 'Pflanze', 'Pflanzen')}</div>
+      <div class="summary-water">${esc(summary)}</div>
+    </div>
     <div class="toolbar"><button class="btn btn-soft btn-sm" data-action="rooms">🏠 Räume verwalten</button></div>
     ${groups.map(g => `
       <h2 class="room-title">${esc(g.title)} <span class="room-count">${g.plants.length}</span></h2>
@@ -1256,13 +1270,19 @@ async function waterPlant(p) {
 
   wateringNow.add(p.id);
   const today = todayStr();
-  const history = [{ d: today, f: fertilized }, ...(Array.isArray(p.history) ? p.history : [])].slice(0, 50);
+  const oldHistory = Array.isArray(p.history) ? p.history : [];
+  const history = [{ d: today, f: fertilized }, ...oldHistory].slice(0, 50);
+  const update = {
+    lastWatered: today,
+    waterCount: fertilized ? 0 : count + 1,   // "Ja" setzt den Zähler zurück
+    history
+  };
+  // Ältere Pflanzen: Ausgangsdatum vor dem ersten Gießen merken (für das Löschen im Verlauf)
+  if (!isYmd(p.initialLastWatered) && !oldHistory.length && isYmd(p.lastWatered)) {
+    update.initialLastWatered = p.lastWatered;
+  }
   try {
-    await updateDoc(docIn('plants', p.id), {
-      lastWatered: today,
-      waterCount: fertilized ? 0 : count + 1,   // "Ja" setzt den Zähler zurück
-      history
-    });
+    await updateDoc(docIn('plants', p.id), update);
     toast(fertilized ? 'Gegossen und gedüngt 🌿' : 'Gegossen 💧');
   } catch (err) {
     toast('Speichern fehlgeschlagen: ' + errText(err));
@@ -1392,6 +1412,7 @@ function openPlantSheet({ prefill = {}, onSaved } = {}) {
         waterCount: 0,
         ownedSince: values.ownedSince,
         lastWatered: values.lastWatered,
+        initialLastWatered: values.lastWatered,   // Ausgangsdatum, falls der Verlauf später leer wird
         notes: values.notes,
         photo: photo.get(),
         history: [],
@@ -1551,6 +1572,7 @@ function openDetail(id) {
 
   // Angaben speichern
   const form = $('.detail-form', el);
+  form.dataset.lw = p.lastWatered || '';   // zuletzt bekanntes Gießdatum (siehe renderDetailTop)
   wireRoomSelect(form);
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -1561,7 +1583,7 @@ function openDetail(id) {
     setBusy(btn, true, 'Wird gespeichert …');
     try {
       const roomId = await resolveRoom(values);
-      await updateDoc(docIn('plants', id), {
+      const update = {
         name: values.name,
         species: values.species,
         roomId,
@@ -1570,7 +1592,11 @@ function openDetail(id) {
         ownedSince: values.ownedSince,
         lastWatered: values.lastWatered,
         notes: values.notes
-      });
+      };
+      // Solange noch nie gegossen wurde, ist das korrigierte Datum auch das Ausgangsdatum
+      const current = findPlant(id);
+      if (!(Array.isArray(current?.history) && current.history.length)) update.initialLastWatered = values.lastWatered;
+      await updateDoc(docIn('plants', id), update);
       form.elements.namedItem('room').innerHTML = roomOptions(roomId);
       form.elements.namedItem('newRoom').value = '';
       $('.new-room', form).hidden = true;
@@ -1605,11 +1631,94 @@ function renderDetailTop(p) {
     ${every ? `<p class="fert-info">🧪 Düngen bei jedem ${every}. Gießen · seit dem letzten Düngen ${count}× gegossen</p>` : ''}
     <button class="btn btn-primary btn-block" data-action="water" ${p.lastWatered === todayStr() ? 'disabled title="Heute schon gegossen"' : ''}>Gegossen ✓</button>`;
 
+  // Verlauf mit Papierkorb pro Eintrag (Index = Position im gespeicherten Verlauf)
   const history = (Array.isArray(p.history) ? p.history : []).slice(0, 15);
   $('.history-wrap', el).innerHTML = history.length
-    ? `<ul class="history">${history.map(h => `
-        <li><span>${h.f ? '💧🧪' : '💧'}</span><span>${h.f ? 'Gegossen + gedüngt' : 'Gegossen'}</span><span class="h-date">${esc(formatDate(h.d))}</span></li>`).join('')}</ul>`
+    ? `<ul class="history">${history.map((h, i) => `
+        <li><span>${h.f ? '💧🧪' : '💧'}</span><span>${h.f ? 'Gegossen + gedüngt' : 'Gegossen'}</span><span class="h-date">${esc(formatDate(h.d))}</span>
+          <button class="icon-btn sm h-del" type="button" data-action="del-history" data-index="${i}" aria-label="Eintrag vom ${esc(formatDate(h.d))} löschen">🗑️</button></li>`).join('')}</ul>`
     : '<p class="muted">Noch keine Einträge. Tippe auf „Gegossen ✓“, dann erscheint hier der Verlauf.</p>';
+
+  // Feld "Zuletzt gegossen" im Formular nachziehen, wenn sich das Datum geändert hat
+  // (z. B. nach Gießen oder Löschen) – aber nur, wenn es nicht gerade von Hand geändert wurde
+  const form = $('.detail-form', el);
+  const lwInput = form?.elements.namedItem('lastWatered');
+  const lw = p.lastWatered || '';
+  if (lwInput && form.dataset.lw !== lw) {
+    if (lwInput.value === form.dataset.lw) lwInput.value = lw;
+    form.dataset.lw = lw;
+  }
+}
+
+// ---------- Einträge im Verlauf löschen ----------
+
+// Ausgangsdatum, wenn kein Gieß-Eintrag mehr übrig ist:
+// das beim Anlegen gesetzte Datum (bei älteren Pflanzen ersatzweise der Anlegetag)
+function baseWaterDate(p) {
+  if (isYmd(p.initialLastWatered)) return p.initialLastWatered;
+  const c = p.createdAt;
+  const d = c?.toDate ? c.toDate() : (typeof c === 'number' ? new Date(c) : null);
+  if (d && !isNaN(d)) return ymd(d);
+  return isYmd(p.ownedSince) ? p.ownedSince : todayStr();
+}
+
+// "Zuletzt gegossen" und Dünge-Zähler aus dem Verlauf neu berechnen
+// (Verlauf ist gespeichert mit dem neuesten Eintrag zuerst)
+function recalcFromHistory(p, history) {
+  const dates = history.map(h => h.d).filter(isYmd);
+  const lastWatered = dates.length ? dates.reduce((a, b) => (b > a ? b : a)) : baseWaterDate(p);
+  let waterCount = 0;                       // Gießvorgänge seit dem letzten Düngen
+  for (const h of history) { if (h.f) break; waterCount++; }
+  return { history, lastWatered, waterCount };
+}
+
+const sameEntry = (a, b) => !!a && !!b && a.d === b.d && !!a.f === !!b.f;
+const historyKey = h => (Array.isArray(h) ? h : []).map(x => `${x.d}|${x.f ? 1 : 0}`).join(',');
+
+async function deleteHistoryEntry(p, index) {
+  const entry = (Array.isArray(p.history) ? p.history : [])[index];
+  if (!entry) return;
+  const what = entry.f ? 'Gießen + Düngen' : 'Gießen';
+  const ok = await confirmDelete(`${what} vom ${formatDate(entry.d)} löschen?`,
+    '„Zuletzt gegossen“, nächster Gieß-Termin und Dünge-Zähler werden danach neu berechnet.');
+  if (!ok) return;
+
+  // Aktuelle Daten holen (könnten sich während des Dialogs geändert haben)
+  const cur = findPlant(p.id);
+  if (!cur) return;
+  const curHistory = Array.isArray(cur.history) ? cur.history : [];
+  const i = sameEntry(curHistory[index], entry) ? index : curHistory.findIndex(h => sameEntry(h, entry));
+  if (i < 0) return;
+
+  const before = { history: curHistory, lastWatered: cur.lastWatered, waterCount: Number(cur.waterCount) || 0 };
+  const after = recalcFromHistory(cur, curHistory.filter((_, k) => k !== i));
+  try {
+    await updateDoc(docIn('plants', cur.id), after);
+    snackbar(`${what} vom ${formatDate(entry.d)} gelöscht`, 'Rückgängig',
+      () => undoHistoryDelete(cur.id, before, after, i, entry));
+  } catch (err) {
+    toast('Löschen fehlgeschlagen: ' + errText(err));
+  }
+}
+
+async function undoHistoryDelete(id, before, after, index, entry) {
+  const cur = findPlant(id);
+  if (!cur) return toast('Die Pflanze gibt es nicht mehr.');
+  const curHistory = Array.isArray(cur.history) ? cur.history : [];
+  let data;
+  if (historyKey(curHistory) === historyKey(after.history)) {
+    data = before;                          // nichts anderes passiert: alten Stand exakt zurück
+  } else {
+    const h = [...curHistory];              // inzwischen geändert: Eintrag wieder einfügen und neu rechnen
+    h.splice(Math.min(index, h.length), 0, entry);
+    data = recalcFromHistory(cur, h.slice(0, 50));
+  }
+  try {
+    await updateDoc(docIn('plants', id), data);
+    toast('Eintrag wiederhergestellt ✓');
+  } catch (err) {
+    toast('Rückgängig fehlgeschlagen: ' + errText(err));
+  }
 }
 
 function refreshDetail() {
@@ -2150,11 +2259,13 @@ function wireEvents() {
 
   // Detailansicht: Zurück, Gießen, Löschen
   $('#detail').addEventListener('click', e => {
-    const a = e.target.closest('[data-action]')?.dataset.action;
+    const btn = e.target.closest('[data-action]');
+    const a = btn?.dataset.action;
     const p = findPlant(state.detailId);
     if (a === 'back') closeDetail();
     if (a === 'water' && p) waterPlant(p);
     if (a === 'delete' && p) deletePlant(p);
+    if (a === 'del-history' && p) deleteHistoryEntry(p, Number(btn.dataset.index));
   });
 
   // Chat-Reiter
